@@ -11,6 +11,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #f0f4f8; /* Light blue-gray background */
             display: flex;
+            flex-direction: column; /* Allow vertical stacking */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -27,6 +28,7 @@
             text-align: center;
             max-width: 90%; /* Responsive width */
             width: 500px; /* Max width for larger screens */
+            margin-bottom: 20px; /* Space below game container */
         }
 
         .game-title {
@@ -99,21 +101,21 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
 
-        .player-1 {
+        .player-1-color {
             background-color: #e74c3c; /* Red */
         }
 
-        .player-2 {
+        .player-2-color {
             background-color: #3498db; /* Blue */
         }
 
-        .player-1.king {
+        .player-1-color.king {
             background-color: #c0392b; /* Darker Red for King */
             border: 3px solid #f1c40f; /* Gold border for King */
             font-size: 1.5rem;
         }
 
-        .player-2.king {
+        .player-2-color.king {
             background-color: #2980b9; /* Darker Blue for King */
             border: 3px solid #f1c40f; /* Gold border for King */
             font-size: 1.5rem;
@@ -125,9 +127,88 @@
             border: 2px dashed #27ae60;
         }
 
+        .controls-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            text-align: center;
+            max-width: 90%;
+            width: 500px;
+            margin-top: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .input-group input[type="text"] {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 2px solid #ccc;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input[type="text"]:focus {
+            border-color: #8e44ad;
+        }
+
+        .button-group button {
+            background-color: #8e44ad;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-group button:hover {
+            background-color: #6c3483;
+            transform: translateY(-2px);
+        }
+
+        .button-group button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-text {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8e44ad;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* Responsive adjustments */
         @media (max-width: 600px) {
-            .game-container {
+            .game-container, .controls-container {
                 padding: 1.5rem;
             }
             .game-title {
@@ -143,8 +224,14 @@
             .piece {
                 font-size: 1rem;
             }
-            .player-1.king, .player-2.king {
+            .player-1-color.king, .player-2-color.king {
                 font-size: 1.2rem;
+            }
+            .input-group {
+                flex-direction: column;
+            }
+            .input-group button {
+                width: 100%;
             }
         }
     </style>
@@ -161,13 +248,53 @@
         </div>
     </div>
 
-    <script>
+    <div class="controls-container">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Online Play</h2>
+        <div class="input-group">
+            <input type="text" id="gameIdInput" placeholder="Enter Game ID">
+            <button id="joinGameBtn" class="button-group">Join Game</button>
+        </div>
+        <div class="button-group">
+            <button id="createGameBtn">Create New Game</button>
+        </div>
+        <div class="info-text mt-4">
+            <p>Your User ID: <span id="userIdDisplay">Loading...</span></p>
+            <p>Current Game ID: <span id="gameIdDisplay">None</span></p>
+            <p>You are Player: <span id="assignedPlayerDisplay">Waiting...</span></p>
+            <div id="loadingIndicator" class="loading-spinner hidden"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // UI Elements
         const boardElement = document.getElementById('gameBoard');
         const currentPlayerDisplay = document.getElementById('currentPlayerDisplay');
         const gameMessage = document.getElementById('gameMessage');
+        const gameIdInput = document.getElementById('gameIdInput');
+        const createGameBtn = document.getElementById('createGameBtn');
+        const joinGameBtn = document.getElementById('joinGameBtn');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const gameIdDisplay = document.getElementById('gameIdDisplay');
+        const assignedPlayerDisplay = document.getElementById('assignedPlayerDisplay');
+        const loadingIndicator = document.getElementById('loadingIndicator');
 
-        // Represents the 5x5 game board
-        // 0: empty, 1: Player 1 Soldier, 2: Player 2 Soldier, 1K: Player 1 King, 2K: Player 2 King
+        // Firebase variables
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        let currentUserId = null;
+        let currentGameId = null;
+        let myPlayerNumber = 0; // 0: not assigned, 1: Player 1, 2: Player 2
+        let unsubscribeGameListener = null; // To store the unsubscribe function for onSnapshot
+
+        // Game state (local copy, synchronized with Firestore)
         let board = [
             [2, 2, '2K', 2, 2],
             [0, 0, 0, 0, 0],
@@ -175,10 +302,240 @@
             [0, 0, 0, 0, 0],
             [1, 1, '1K', 1, 1]
         ];
-
         let currentPlayer = 1; // 1 for Player 1, 2 for Player 2
-        let selectedPiece = null; // To keep track of the piece currently selected (DOM element)
-        let selectedPieceCoords = null; // To keep track of the selected piece's [row, col]
+        let selectedPiece = null; // DOM element reference
+        let selectedPieceCoords = null; // [row, col]
+
+        // --- Firebase Authentication ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+            } else {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined') {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    currentUserId = auth.currentUser.uid;
+                } catch (error) {
+                    console.error("Firebase authentication error:", error);
+                    gameMessage.textContent = "Error authenticating. Please refresh.";
+                }
+            }
+            userIdDisplay.textContent = currentUserId;
+        });
+
+        // --- Game State Synchronization with Firestore ---
+
+        // Function to update game state in Firestore
+        async function updateGameInFirestore() {
+            if (!currentGameId) {
+                console.warn("No game ID set. Cannot update Firestore.");
+                return;
+            }
+            loadingIndicator.classList.remove('hidden');
+            try {
+                const gameDocRef = doc(db, `artifacts/${appId}/public/data/kingsvalley_games`, currentGameId);
+                await setDoc(gameDocRef, {
+                    board: JSON.stringify(board), // Store board as string
+                    currentPlayer: currentPlayer,
+                    player1Id: player1Id,
+                    player2Id: player2Id,
+                    lastUpdated: Date.now(),
+                    gameMessage: gameMessage.textContent // Sync messages too
+                }, { merge: true }); // Use merge to avoid overwriting other fields
+            } catch (error) {
+                console.error("Error updating game in Firestore:", error);
+                gameMessage.textContent = "Error saving move. Check console.";
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        let player1Id = null;
+        let player2Id = null;
+
+        // Function to listen for real-time game updates from Firestore
+        function listenForGameUpdates(gameId) {
+            if (unsubscribeGameListener) {
+                unsubscribeGameListener(); // Unsubscribe from previous listener if any
+            }
+
+            const gameDocRef = doc(db, `artifacts/${appId}/public/data/kingsvalley_games`, gameId);
+            unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const gameData = docSnap.data();
+                    // Update local game state
+                    board = JSON.parse(gameData.board); // Parse board string back to array
+                    currentPlayer = gameData.currentPlayer;
+                    player1Id = gameData.player1Id || null;
+                    player2Id = gameData.player2Id || null;
+                    gameMessage.textContent = gameData.gameMessage || "Game updated!";
+
+                    // Assign player number if not already assigned
+                    if (myPlayerNumber === 0) {
+                        if (player1Id === currentUserId) {
+                            myPlayerNumber = 1;
+                            assignedPlayerDisplay.textContent = "Player 1 (Red)";
+                        } else if (player2Id === currentUserId) {
+                            myPlayerNumber = 2;
+                            assignedPlayerDisplay.textContent = "Player 2 (Blue)";
+                        } else if (!player1Id) { // If player1 is not set, this user becomes player1
+                            player1Id = currentUserId;
+                            myPlayerNumber = 1;
+                            assignedPlayerDisplay.textContent = "Player 1 (Red)";
+                            updateGameInFirestore(); // Update Firestore with player1Id
+                        } else if (!player2Id) { // If player2 is not set, this user becomes player2
+                            player2Id = currentUserId;
+                            myPlayerNumber = 2;
+                            assignedPlayerDisplay.textContent = "Player 2 (Blue)";
+                            updateGameInFirestore(); // Update Firestore with player2Id
+                        } else {
+                            // Both player slots are taken, this user is a spectator
+                            myPlayerNumber = 0;
+                            assignedPlayerDisplay.textContent = "Spectator";
+                            gameMessage.textContent = "This game is full. You are a spectator.";
+                        }
+                    }
+
+                    renderBoard(); // Re-render the board with the updated state
+                } else {
+                    console.log("Game does not exist.");
+                    gameMessage.textContent = "Game not found. Please create or join another.";
+                    currentGameId = null;
+                    gameIdDisplay.textContent = "None";
+                    myPlayerNumber = 0;
+                    assignedPlayerDisplay.textContent = "Waiting...";
+                    // Reset board to initial state if game disappears
+                    board = [
+                        [2, 2, '2K', 2, 2],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [1, 1, '1K', 1, 1]
+                    ];
+                    renderBoard();
+                }
+            }, (error) => {
+                console.error("Error listening to game updates:", error);
+                gameMessage.textContent = "Error syncing game. Check console.";
+            });
+            currentGameId = gameId;
+            gameIdDisplay.textContent = gameId;
+        }
+
+        // --- Game Control Functions ---
+
+        async function createGame() {
+            if (!currentUserId) {
+                gameMessage.textContent = "Please wait, authenticating...";
+                return;
+            }
+            loadingIndicator.classList.remove('hidden');
+            try {
+                // Generate a simple unique ID for the game
+                const newGameId = Math.random().toString(36).substring(2, 9).toUpperCase();
+                const gameDocRef = doc(db, `artifacts/${appId}/public/data/kingsvalley_games`, newGameId);
+                
+                // Check if game ID already exists (unlikely with random, but good practice)
+                const docSnap = await getDoc(gameDocRef);
+                if (docSnap.exists()) {
+                    gameMessage.textContent = "Generated ID already exists, trying again...";
+                    loadingIndicator.classList.add('hidden');
+                    setTimeout(createGame, 100); // Retry after a short delay
+                    return;
+                }
+
+                // Initialize a fresh board for the new game
+                const initialBoard = [
+                    [2, 2, '2K', 2, 2],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [1, 1, '1K', 1, 1]
+                ];
+
+                await setDoc(gameDocRef, {
+                    board: JSON.stringify(initialBoard),
+                    currentPlayer: 1,
+                    player1Id: currentUserId,
+                    player2Id: null, // Player 2 slot is empty
+                    lastUpdated: Date.now(),
+                    gameMessage: "Game created! Share this ID with a friend."
+                });
+                
+                gameMessage.textContent = `Game created! ID: ${newGameId}. Share this with a friend.`;
+                listenForGameUpdates(newGameId);
+                myPlayerNumber = 1;
+                assignedPlayerDisplay.textContent = "Player 1 (Red)";
+            } catch (error) {
+                console.error("Error creating game:", error);
+                gameMessage.textContent = "Failed to create game. Check console.";
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        async function joinGame() {
+            if (!currentUserId) {
+                gameMessage.textContent = "Please wait, authenticating...";
+                return;
+            }
+            const gameId = gameIdInput.value.trim().toUpperCase();
+            if (!gameId) {
+                gameMessage.textContent = "Please enter a Game ID to join.";
+                return;
+            }
+            loadingIndicator.classList.remove('hidden');
+            try {
+                const gameDocRef = doc(db, `artifacts/${appId}/public/data/kingsvalley_games`, gameId);
+                const docSnap = await getDoc(gameDocRef);
+
+                if (docSnap.exists()) {
+                    const gameData = docSnap.data();
+                    if (gameData.player1Id === currentUserId || gameData.player2Id === currentUserId) {
+                        // User is already part of this game
+                        gameMessage.textContent = `You are already in game ${gameId}.`;
+                        listenForGameUpdates(gameId);
+                    } else if (!gameData.player2Id) {
+                        // Player 2 slot is empty, join as Player 2
+                        await setDoc(gameDocRef, {
+                            player2Id: currentUserId,
+                            gameMessage: `Player 2 (${currentUserId}) joined the game!`
+                        }, { merge: true });
+                        gameMessage.textContent = `Joined game ${gameId} as Player 2.`;
+                        listenForGameUpdates(gameId);
+                        myPlayerNumber = 2;
+                        assignedPlayerDisplay.textContent = "Player 2 (Blue)";
+                    } else if (!gameData.player1Id) { // Edge case: Player 1 left, Player 2 joins as Player 1
+                        await setDoc(gameDocRef, {
+                            player1Id: currentUserId,
+                            gameMessage: `Player 1 (${currentUserId}) joined the game!`
+                        }, { merge: true });
+                        gameMessage.textContent = `Joined game ${gameId} as Player 1.`;
+                        listenForGameUpdates(gameId);
+                        myPlayerNumber = 1;
+                        assignedPlayerDisplay.textContent = "Player 1 (Red)";
+                    }
+                    else {
+                        gameMessage.textContent = "This game is full. You can spectate.";
+                        listenForGameUpdates(gameId); // Still listen to updates for spectating
+                        myPlayerNumber = 0;
+                        assignedPlayerDisplay.textContent = "Spectator";
+                    }
+                } else {
+                    gameMessage.textContent = "Game ID not found. Please check the ID or create a new game.";
+                }
+            } catch (error) {
+                console.error("Error joining game:", error);
+                gameMessage.textContent = "Failed to join game. Check console.";
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        // --- Game Logic (Modified to interact with Firebase) ---
 
         // Function to render the board based on the 'board' array
         function renderBoard() {
@@ -197,20 +554,26 @@
                         piece.dataset.row = row;
                         piece.dataset.col = col;
 
-                        if (pieceType === 1) {
-                            piece.classList.add('player-1');
-                            piece.textContent = 'S'; // Soldier
-                        } else if (pieceType === '1K') {
-                            piece.classList.add('player-1', 'king');
-                            piece.textContent = 'K'; // King
-                        } else if (pieceType === 2) {
-                            piece.classList.add('player-2');
-                            piece.textContent = 'S'; // Soldier
-                        } else if (pieceType === '2K') {
-                            piece.classList.add('player-2', 'king');
-                            piece.textContent = 'K'; // King
+                        // Use player-color classes
+                        if (pieceType === 1 || pieceType === '1K') {
+                            piece.classList.add('player-1-color');
+                            piece.textContent = (pieceType === 1) ? 'S' : 'K';
+                        } else if (pieceType === 2 || pieceType === '2K') {
+                            piece.classList.add('player-2-color');
+                            piece.textContent = (pieceType === 2) ? 'S' : 'K';
                         }
-                        piece.addEventListener('click', handlePieceClick);
+                        if (pieceType === '1K' || pieceType === '2K') {
+                            piece.classList.add('king');
+                        }
+                        
+                        // Only allow current player to click their pieces if assigned
+                        if (myPlayerNumber !== 0 && ((myPlayerNumber === 1 && (pieceType === 1 || pieceType === '1K')) ||
+                            (myPlayerNumber === 2 && (pieceType === 2 || pieceType === '2K')))) {
+                            piece.addEventListener('click', handlePieceClick);
+                        } else {
+                             // Disable cursor for opponent's pieces or spectators
+                             piece.style.cursor = 'default';
+                        }
                         square.appendChild(piece);
                     }
                     square.addEventListener('click', handleSquareClick); // Add click listener to squares for movement
@@ -261,43 +624,36 @@
             // 3. Simulate the slide and check for obstacles/stopping conditions
             let currentRow = startRow + rowDir;
             let currentCol = startCol + colDir;
-            let pathClear = true;
-            let stoppedByObstacle = false;
-
+            
+            // Check if the target is reachable by sliding
+            let foundTarget = false;
             while (isInBounds(currentRow, currentCol) && !isOccupied(currentRow, currentCol)) {
-                // If the piece is a soldier and tries to stop on the King's Valley (2,2) mid-slide, it's invalid
-                if (!isKing && currentRow === 2 && currentCol === 2) {
-                    // A soldier cannot stop *on* the King's Valley square unless it's the final destination
-                    // and it's forced to stop there by an obstacle or edge.
-                    // If the *next* square is empty, it means the soldier is trying to stop mid-slide on KV.
-                    const nextRow = currentRow + rowDir;
-                    const nextCol = currentCol + colDir;
-                    if (isInBounds(nextRow, nextCol) && !isOccupied(nextRow, nextCol)) {
-                        return false; // Soldier cannot stop mid-slide on King's Valley
-                    }
-                }
-
                 if (currentRow === targetRow && currentCol === targetCol) {
-                    // Reached the target, now check if it's a valid stopping point
-                    const nextRow = targetRow + rowDir;
-                    const nextCol = targetCol + colDir;
-
-                    // Must stop adjacent to an obstacle or edge
-                    if (!isInBounds(nextRow, nextCol) || isOccupied(nextRow, nextCol)) {
-                        // Special rule: King can stop on (2,2). Soldiers cannot.
-                        if (targetRow === 2 && targetCol === 2 && !isKing) {
-                            return false; // Soldier cannot stop on King's Valley
-                        }
-                        return true; // Valid stop
-                    } else {
-                        return false; // Stopped mid-slide, not by obstacle or edge
-                    }
+                    foundTarget = true;
+                    break;
                 }
-
                 currentRow += rowDir;
                 currentCol += colDir;
             }
-            return false; // Path blocked or didn't reach target correctly
+
+            if (!foundTarget) {
+                return false; // Target is not reachable by sliding
+            }
+
+            // Now check stopping conditions for the *reached* target square
+            const nextRow = targetRow + rowDir;
+            const nextCol = targetCol + colDir;
+
+            // Must stop adjacent to an obstacle or edge
+            if (!isInBounds(nextRow, nextCol) || isOccupied(nextRow, nextCol)) {
+                // Special rule: King can stop on (2,2). Soldiers cannot.
+                if (targetRow === 2 && targetCol === 2 && !isKing) {
+                    return false; // Soldier cannot stop on King's Valley
+                }
+                return true; // Valid stop
+            } else {
+                return false; // Stopped mid-slide, not by obstacle or edge
+            }
         }
 
         // Function to find and highlight all valid moves for the selected piece
@@ -331,9 +687,19 @@
             const col = parseInt(clickedPiece.dataset.col);
             const pieceType = board[row][col];
 
+            // Ensure it's the current player's turn and they are assigned a player number
+            if (myPlayerNumber === 0) {
+                gameMessage.textContent = "You are a spectator or not assigned a player. Join or create a game.";
+                return;
+            }
+            if (currentPlayer !== myPlayerNumber) {
+                gameMessage.textContent = "It's not your turn!";
+                return;
+            }
+
             // Check if it's the current player's piece
-            if ((currentPlayer === 1 && (pieceType === 1 || pieceType === '1K')) ||
-                (currentPlayer === 2 && (pieceType === 2 || pieceType === '2K'))) {
+            if ((myPlayerNumber === 1 && (pieceType === 1 || pieceType === '1K')) ||
+                (myPlayerNumber === 2 && (pieceType === 2 || pieceType === '2K'))) {
 
                 if (selectedPiece) {
                     // Deselect previously selected piece
@@ -345,7 +711,7 @@
                 gameMessage.textContent = `Piece selected at (${row}, ${col}). Now click a highlighted square to move.`;
                 highlightValidMoves(); // Highlight valid moves for the selected piece
             } else {
-                gameMessage.textContent = "That's not your piece, or it's not your turn!";
+                gameMessage.textContent = "That's not your piece!";
                 // Clear any existing selection and highlights if clicking an invalid piece
                 if (selectedPiece) {
                     selectedPiece.classList.remove('border-4', 'border-yellow-400');
@@ -359,17 +725,23 @@
         }
 
         // Handles clicking on a square (to move to it)
-        function handleSquareClick(event) {
+        async function handleSquareClick(event) {
             const clickedSquare = event.currentTarget; // Use currentTarget to get the square div
             const targetRow = parseInt(clickedSquare.dataset.row);
             const targetCol = parseInt(clickedSquare.dataset.col);
+
+            // Ensure it's the current player's turn and they are assigned a player number
+            if (myPlayerNumber === 0 || currentPlayer !== myPlayerNumber) {
+                gameMessage.textContent = "It's not your turn, or you are not a player in this game.";
+                return;
+            }
 
             if (selectedPiece && selectedPieceCoords) {
                 const [startRow, startCol] = selectedPieceCoords;
 
                 // Validate the move using the King's Valley rules
                 if (isValidMove(startRow, startCol, targetRow, targetCol)) {
-                    // Move the piece in the board array
+                    // Perform the move on the local board
                     board[targetRow][targetCol] = board[startRow][startCol];
                     board[startRow][startCol] = 0; // Clear the old position
 
@@ -377,8 +749,9 @@
                     const pieceMoved = board[targetRow][targetCol];
                     if ((pieceMoved === '1K' || pieceMoved === '2K') && targetRow === 2 && targetCol === 2) {
                         gameMessage.textContent = `Player ${currentPlayer} wins! The King reached the King's Valley!`;
-                        // You might want to add a "reset game" button or similar here
-                        // For now, the game just stops accepting moves.
+                        // Update Firestore with win state
+                        await updateGameInFirestore(); // Ensure win state is synced
+                        // No turn switch after win
                         selectedPiece = null;
                         selectedPieceCoords = null;
                         document.querySelectorAll('.highlight-move').forEach(square => {
@@ -396,10 +769,12 @@
                         square.classList.remove('highlight-move');
                     });
                     
-                    // Switch turn
+                    // Switch turn locally, then update Firestore
                     currentPlayer = currentPlayer === 1 ? 2 : 1;
                     gameMessage.textContent = "Piece moved! Now it's the other player's turn.";
-                    renderBoard(); // Re-render the board to show the new position
+                    
+                    await updateGameInFirestore(); // Push changes to Firestore
+                    renderBoard(); // Re-render the board with the new state
                 } else {
                     gameMessage.textContent = "Invalid move. Please select a highlighted square.";
                 }
@@ -418,6 +793,10 @@
                 currentPlayerDisplay.classList.add('text-blue-500');
             }
         }
+
+        // --- Event Listeners for Game Controls ---
+        createGameBtn.addEventListener('click', createGame);
+        joinGameBtn.addEventListener('click', joinGame);
 
         // Initial render when the page loads
         document.addEventListener('DOMContentLoaded', renderBoard);
