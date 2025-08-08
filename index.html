@@ -285,9 +285,28 @@
 
         // Firebase variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        // Ensure firebaseConfig is parsed correctly, handling potential empty string from environment
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' && __firebase_config !== '' ? __firebase_config : '{}');
-        console.log("Firebase Config:", firebaseConfig); // Log Firebase config for debugging
+        let firebaseConfig = {};
+        try {
+            // Attempt to parse the __firebase_config. Handle cases where it might be undefined or an empty string.
+            firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' && __firebase_config !== '' ? __firebase_config : '{}');
+        } catch (e) {
+            console.error("Error parsing __firebase_config:", e);
+            gameMessage.textContent = "Error loading Firebase configuration. Check console.";
+        }
+
+        // Ensure projectId is present. If not, use a placeholder and warn.
+        if (!firebaseConfig.projectId) {
+            console.warn("Firebase projectId not found in __firebase_config. Using a placeholder. Please ensure your Canvas environment provides a valid Firebase config.");
+            // Provide default values for all required Firebase config properties
+            firebaseConfig.projectId = 'your-default-project-id';
+            firebaseConfig.apiKey = firebaseConfig.apiKey || 'your-default-api-key';
+            firebaseConfig.authDomain = firebaseConfig.authDomain || 'your-default-auth-domain';
+            firebaseConfig.databaseURL = firebaseConfig.databaseURL || 'your-default-database-url';
+            firebaseConfig.storageBucket = firebaseConfig.storageBucket || 'your-default-storage-bucket';
+            firebaseConfig.messagingSenderId = firebaseConfig.messagingSenderId || 'your-default-messaging-sender-id';
+            firebaseConfig.appId = firebaseConfig.appId || 'your-default-app-id';
+        }
+        console.log("Final Firebase Config used:", firebaseConfig); // Log final config
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
