@@ -1,325 +1,290 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.6">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #4689cc; -webkit-text-stroke: #4689cc}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #8cd3fe; -webkit-text-stroke: #8cd3fe}
-    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #c27e65; -webkit-text-stroke: #c27e65}
-    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #cacaca; -webkit-text-stroke: #cacaca}
-    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #6d7378; -webkit-text-stroke: #6d7378}
-    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #cacaca; -webkit-text-stroke: #cacaca; min-height: 16.0px}
-    p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #71c083; -webkit-text-stroke: #71c083}
-    span.s1 {font-kerning: none; background-color: #171818}
-    span.s2 {font-kerning: none; color: #8cd3fe; background-color: #171818; -webkit-text-stroke: 0px #8cd3fe}
-    span.s3 {font-kerning: none; color: #6d6d6d; background-color: #171818; -webkit-text-stroke: 0px #6d6d6d}
-    span.s4 {font-kerning: none; color: #cacaca; background-color: #171818; -webkit-text-stroke: 0px #cacaca}
-    span.s5 {font-kerning: none; color: #c27e65; background-color: #171818; -webkit-text-stroke: 0px #c27e65}
-    span.s6 {font-kerning: none; color: #4689cc; background-color: #171818; -webkit-text-stroke: 0px #4689cc}
-    span.s7 {font-kerning: none; color: #d4d4d4; background-color: #171818; -webkit-text-stroke: 0px #d4d4d4}
-    span.s8 {font-kerning: none; color: #71c083; background-color: #171818; -webkit-text-stroke: 0px #71c083}
-    span.s9 {font-kerning: none; color: #a7c598; background-color: #171818; -webkit-text-stroke: 0px #a7c598}
-    span.s10 {font-kerning: none}
-    span.s11 {font-kerning: none; color: #6d7378; background-color: #171818; -webkit-text-stroke: 0px #6d7378}
-    span.s12 {font-kerning: none; color: #b76ff7; background-color: #171818; -webkit-text-stroke: 0px #b76ff7}
-    span.s13 {font-kerning: none; color: #f67c30; background-color: #171818; -webkit-text-stroke: 0px #f67c30}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King's Valley</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .game-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem; /* Increased padding */
+            text-align: center;
+            max-width: 90%; /* Responsive width */
+            width: 500px; /* Max width for larger screens */
+        }
+
+        .game-title {
+            font-size: 2.5rem; /* Larger title */
+            font-weight: 700;
+            color: #2c3e50; /* Darker title color */
+            margin-bottom: 1.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* 5x5 board */
+            grid-template-rows: repeat(5, 1fr);
+            width: 100%;
+            max-width: 400px; /* Fixed size for the board itself */
+            height: 400px;
+            margin: 0 auto 2rem auto; /* Center board and add margin below */
+            border: 6px solid #8e44ad; /* Purple border */
+            border-radius: 0.75rem; /* Rounded board corners */
+            overflow: hidden; /* Ensures pieces don't overflow rounded corners */
+        }
+
+        .square {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #34495e;
+            box-sizing: border-box;
+            border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle grid lines */
+        }
+
+        .square:nth-child(odd) {
+            background-color: #ecf0f1; /* Light gray */
+        }
+
+        .square:nth-child(even) {
+            background-color: #bdc3c7; /* Slightly darker gray */
+        }
+
+        /* Center square - King's Valley */
+        .square[data-row="2"][data-col="2"] {
+            background-color: #f39c12; /* Orange for the King's Valley */
+            color: #ffffff;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .piece {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%; /* Circular pieces */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .piece:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-1 {
+            background-color: #e74c3c; /* Red */
+        }
+
+        .player-2 {
+            background-color: #3498db; /* Blue */
+        }
+
+        .player-1.king {
+            background-color: #c0392b; /* Darker Red for King */
+            border: 3px solid #f1c40f; /* Gold border for King */
+            font-size: 1.5rem;
+        }
+
+        .player-2.king {
+            background-color: #2980b9; /* Darker Blue for King */
+            border: 3px solid #f1c40f; /* Gold border for King */
+            font-size: 1.5rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 1.5rem;
+            }
+            .game-title {
+                font-size: 2rem;
+            }
+            .board {
+                max-width: 300px;
+                height: 300px;
+            }
+            .square {
+                font-size: 1.2rem;
+            }
+            .piece {
+                font-size: 1rem;
+            }
+            .player-1.king, .player-2.king {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-<p class="p1"><span class="s1">&lt;!DOCTYPE</span><span class="s2"> html</span><span class="s1">&gt;</span></p>
-<p class="p1"><span class="s3">&lt;</span><span class="s1">html</span><span class="s4"> </span><span class="s2">lang</span><span class="s3">=</span><span class="s5">"en"</span><span class="s3">&gt;</span></p>
-<p class="p1"><span class="s3">&lt;</span><span class="s1">head</span><span class="s3">&gt;</span></p>
-<p class="p2"><span class="s4"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s6">meta</span><span class="s4"> </span><span class="s1">charset</span><span class="s3">=</span><span class="s5">"UTF-8"</span><span class="s3">&gt;</span></p>
-<p class="p3"><span class="s4"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s6">meta</span><span class="s4"> </span><span class="s2">name</span><span class="s3">=</span><span class="s1">"viewport"</span><span class="s4"> </span><span class="s2">content</span><span class="s3">=</span><span class="s1">"width=device-width, initial-scale=1.0"</span><span class="s3">&gt;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s6">title</span><span class="s3">&gt;</span><span class="s1">King's Valley</span><span class="s3">&lt;/</span><span class="s6">title</span><span class="s3">&gt;</span></p>
-<p class="p3"><span class="s4"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s6">script</span><span class="s4"> </span><span class="s2">src</span><span class="s3">=</span><span class="s1">"https://cdn.tailwindcss.com"</span><span class="s3">&gt;&lt;/</span><span class="s6">script</span><span class="s3">&gt;</span></p>
-<p class="p3"><span class="s4"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s6">link</span><span class="s4"> </span><span class="s2">href</span><span class="s3">=</span><span class="s1">"https://fonts.googleapis.com/css2?family=Inter:wght@400;700&amp;display=swap"</span><span class="s4"> </span><span class="s2">rel</span><span class="s3">=</span><span class="s1">"stylesheet"</span><span class="s3">&gt;</span></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s1">style</span><span class="s3">&gt;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">body</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">font-family:</span><span class="s1"> </span><span class="s8">'Inter'</span><span class="s7">,</span><span class="s1"> </span><span class="s5">sans-serif</span><span class="s7">;</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">background-color:</span><span class="s4"> #f0f4f8</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Light blue-gray background */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">display:</span><span class="s1"> </span><span class="s5">flex</span><span class="s7">;</span></p>
-<p class="p2"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s1">justify-content:</span><span class="s4"> </span><span class="s5">center</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">align-items:</span><span class="s1"> </span><span class="s5">center</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">min-height:</span><span class="s1"> </span><span class="s9">100vh</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">margin:</span><span class="s1"> </span><span class="s9">0</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">padding:</span><span class="s1"> </span><span class="s9">20px</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">box-sizing:</span><span class="s1"> </span><span class="s5">border-box</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">.game-container</span><span class="s4"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">background-color:</span><span class="s1"> #ffffff</span><span class="s7">;</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">border-radius:</span><span class="s4"> </span><span class="s9">1.5rem</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* More rounded corners */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">box-shadow:</span><span class="s1"> </span><span class="s9">0</span><span class="s1"> </span><span class="s9">10px</span><span class="s1"> </span><span class="s9">25px</span><span class="s1"> </span><span class="s5">rgba(</span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0.1</span><span class="s5">)</span><span class="s7">;</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">padding:</span><span class="s4"> </span><span class="s9">2.5rem</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Increased padding */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">text-align:</span><span class="s1"> </span><span class="s5">center</span><span class="s7">;</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">max-width:</span><span class="s4"> </span><span class="s9">90%</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Responsive width */</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">width:</span><span class="s4"> </span><span class="s9">500px</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Max width for larger screens */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">.game-title</span><span class="s4"> </span><span class="s7">{</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">font-size:</span><span class="s4"> </span><span class="s9">2.5rem</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Larger title */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">font-weight:</span><span class="s1"> </span><span class="s9">700</span><span class="s7">;</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">color:</span><span class="s4"> #2c3e50</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Darker title color */</span></p>
-<p class="p2"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s1">margin-bottom:</span><span class="s4"> </span><span class="s9">1.5rem</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">text-shadow:</span><span class="s1"> </span><span class="s9">1px</span><span class="s1"> </span><span class="s9">1px</span><span class="s1"> </span><span class="s9">2px</span><span class="s1"> </span><span class="s5">rgba(</span><span class="s9">0</span><span class="s7">,</span><span class="s9">0</span><span class="s7">,</span><span class="s9">0</span><span class="s7">,</span><span class="s9">0.05</span><span class="s5">)</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">.board</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">display:</span><span class="s1"> </span><span class="s5">grid</span><span class="s7">;</span></p>
-<p class="p2"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s1">grid-template-columns:</span><span class="s4"> </span><span class="s5">repeat(</span><span class="s9">5</span><span class="s7">,</span><span class="s4"> </span><span class="s9">1fr</span><span class="s5">)</span><span class="s7">;</span><span class="s4"> </span><span class="s11">/* 5x5 board */</span></p>
-<p class="p2"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s1">grid-template-rows:</span><span class="s4"> </span><span class="s5">repeat(</span><span class="s9">5</span><span class="s7">,</span><span class="s4"> </span><span class="s9">1fr</span><span class="s5">)</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">width:</span><span class="s1"> </span><span class="s9">100%</span><span class="s7">;</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">max-width:</span><span class="s4"> </span><span class="s9">400px</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Fixed size for the board itself */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">height:</span><span class="s1"> </span><span class="s9">400px</span><span class="s7">;</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">margin:</span><span class="s4"> </span><span class="s9">0</span><span class="s4"> </span><span class="s5">auto</span><span class="s4"> </span><span class="s9">2rem</span><span class="s4"> </span><span class="s5">auto</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Center board and add margin below */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">border:</span><span class="s1"> </span><span class="s9">6px</span><span class="s1"> </span><span class="s5">solid</span><span class="s1"> #8e44ad</span><span class="s7">;</span><span class="s1"> </span><span class="s11">/* Purple border */</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">border-radius:</span><span class="s4"> </span><span class="s9">0.75rem</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Rounded board corners */</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">overflow:</span><span class="s4"> </span><span class="s5">hidden</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Ensures pieces don't overflow rounded corners */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">.square</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">width:</span><span class="s1"> </span><span class="s9">100%</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">height:</span><span class="s1"> </span><span class="s9">100%</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">display:</span><span class="s1"> </span><span class="s5">flex</span><span class="s7">;</span></p>
-<p class="p2"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s1">justify-content:</span><span class="s4"> </span><span class="s5">center</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">align-items:</span><span class="s1"> </span><span class="s5">center</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">font-size:</span><span class="s1"> </span><span class="s9">1.5rem</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">font-weight:</span><span class="s1"> </span><span class="s5">bold</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">color:</span><span class="s1"> #34495e</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">box-sizing:</span><span class="s1"> </span><span class="s5">border-box</span><span class="s7">;</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">border:</span><span class="s4"> </span><span class="s9">1px</span><span class="s4"> </span><span class="s5">solid</span><span class="s4"> </span><span class="s5">rgba(</span><span class="s9">0</span><span class="s7">,</span><span class="s4"> </span><span class="s9">0</span><span class="s7">,</span><span class="s4"> </span><span class="s9">0</span><span class="s7">,</span><span class="s4"> </span><span class="s9">0.1</span><span class="s5">)</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Subtle grid lines */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">.square:nth-child</span><span class="s4">(</span><span class="s1">odd</span><span class="s4">) </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">background-color:</span><span class="s1"> #ecf0f1</span><span class="s7">;</span><span class="s1"> </span><span class="s11">/* Light gray */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">.square:nth-child</span><span class="s4">(</span><span class="s1">even</span><span class="s4">) </span><span class="s7">{</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">background-color:</span><span class="s4"> #bdc3c7</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Slightly darker gray */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">/* Center square - King's Valley */</span></p>
-<p class="p3"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s6">.square</span><span class="s7">[</span><span class="s1">data-row</span><span class="s7">=</span><span class="s8">"2"</span><span class="s7">][</span><span class="s1">data-col</span><span class="s7">=</span><span class="s8">"2"</span><span class="s7">]</span><span class="s4"> </span><span class="s7">{</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">background-color:</span><span class="s4"> #f39c12</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Orange for the King's Valley */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">color:</span><span class="s1"> #ffffff</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">box-shadow:</span><span class="s1"> </span><span class="s5">inset</span><span class="s1"> </span><span class="s9">0</span><span class="s1"> </span><span class="s9">0</span><span class="s1"> </span><span class="s9">10px</span><span class="s1"> </span><span class="s5">rgba(</span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0.3</span><span class="s5">)</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">position:</span><span class="s1"> </span><span class="s5">relative</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">.piece</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">width:</span><span class="s1"> </span><span class="s9">80%</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">height:</span><span class="s1"> </span><span class="s9">80%</span><span class="s7">;</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">border-radius:</span><span class="s4"> </span><span class="s9">50%</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Circular pieces */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">display:</span><span class="s1"> </span><span class="s5">flex</span><span class="s7">;</span></p>
-<p class="p2"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s1">justify-content:</span><span class="s4"> </span><span class="s5">center</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">align-items:</span><span class="s1"> </span><span class="s5">center</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">font-weight:</span><span class="s1"> </span><span class="s5">bold</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">font-size:</span><span class="s1"> </span><span class="s9">1.2rem</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">color:</span><span class="s1"> #ffffff</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">box-shadow:</span><span class="s1"> </span><span class="s9">0</span><span class="s1"> </span><span class="s9">4px</span><span class="s1"> </span><span class="s9">8px</span><span class="s1"> </span><span class="s5">rgba(</span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0.2</span><span class="s5">)</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">cursor:</span><span class="s1"> </span><span class="s5">pointer</span><span class="s7">;</span></p>
-<p class="p3"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">transition:</span><span class="s4"> </span><span class="s1">transform</span><span class="s4"> </span><span class="s9">0.2s</span><span class="s4"> </span><span class="s1">ease-in-out</span><span class="s7">,</span><span class="s4"> </span><span class="s1">box-shadow</span><span class="s4"> </span><span class="s9">0.2s</span><span class="s4"> </span><span class="s1">ease-in-out</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">.piece:hover</span><span class="s4"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">transform:</span><span class="s1"> </span><span class="s5">translateY(</span><span class="s9">-3px</span><span class="s5">)</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">box-shadow:</span><span class="s1"> </span><span class="s9">0</span><span class="s1"> </span><span class="s9">6px</span><span class="s1"> </span><span class="s9">12px</span><span class="s1"> </span><span class="s5">rgba(</span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0</span><span class="s7">,</span><span class="s1"> </span><span class="s9">0.3</span><span class="s5">)</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">.player-1</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">background-color:</span><span class="s1"> #e74c3c</span><span class="s7">;</span><span class="s1"> </span><span class="s11">/* Red */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">.player-2</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">background-color:</span><span class="s1"> #3498db</span><span class="s7">;</span><span class="s1"> </span><span class="s11">/* Blue */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">.player-1.king</span><span class="s4"> </span><span class="s7">{</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">background-color:</span><span class="s4"> #c0392b</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Darker Red for King */</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">border:</span><span class="s4"> </span><span class="s9">3px</span><span class="s4"> </span><span class="s5">solid</span><span class="s4"> #f1c40f</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Gold border for King */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">font-size:</span><span class="s1"> </span><span class="s9">1.5rem</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">.player-2.king</span><span class="s4"> </span><span class="s7">{</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">background-color:</span><span class="s4"> #2980b9</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Darker Blue for King */</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s2">border:</span><span class="s4"> </span><span class="s9">3px</span><span class="s4"> </span><span class="s5">solid</span><span class="s4"> #f1c40f</span><span class="s7">;</span><span class="s4"> </span><span class="s1">/* Gold border for King */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">font-size:</span><span class="s1"> </span><span class="s9">1.5rem</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">/* Responsive adjustments */</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span>@</span><span class="s6">media</span><span class="s1"> (</span><span class="s6">max-width:</span><span class="s1"> 600</span><span class="s6">px</span><span class="s1">) </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span>.game-container {</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s2">padding:</span><span class="s1"> </span><span class="s9">1.5rem</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s6">.game-title</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s2">font-size:</span><span class="s1"> </span><span class="s9">2rem</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s6">.board</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s2">max-width:</span><span class="s1"> </span><span class="s9">300px</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s2">height:</span><span class="s1"> </span><span class="s9">300px</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s6">.square</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s2">font-size:</span><span class="s1"> </span><span class="s9">1.2rem</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s6">.piece</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s2">font-size:</span><span class="s1"> </span><span class="s9">1rem</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s1">.player-1.king</span><span class="s7">,</span><span class="s4"> </span><span class="s1">.player-2.king</span><span class="s4"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s2">font-size:</span><span class="s1"> </span><span class="s9">1.2rem</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;/</span><span class="s1">style</span><span class="s3">&gt;</span></p>
-<p class="p1"><span class="s3">&lt;/</span><span class="s1">head</span><span class="s3">&gt;</span></p>
-<p class="p1"><span class="s3">&lt;</span><span class="s1">body</span><span class="s3">&gt;</span></p>
-<p class="p3"><span class="s4"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s6">div</span><span class="s4"> </span><span class="s2">class</span><span class="s3">=</span><span class="s1">"game-container"</span><span class="s3">&gt;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s3">&lt;</span><span class="s6">h1</span><span class="s1"> </span><span class="s2">class</span><span class="s3">=</span><span class="s5">"game-title"</span><span class="s3">&gt;</span><span class="s1">King's Valley</span><span class="s3">&lt;/</span><span class="s6">h1</span><span class="s3">&gt;</span></p>
-<p class="p3"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s3">&lt;</span><span class="s6">div</span><span class="s4"> </span><span class="s2">id</span><span class="s3">=</span><span class="s1">"gameBoard"</span><span class="s4"> </span><span class="s2">class</span><span class="s3">=</span><span class="s1">"board"</span><span class="s3">&gt;</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s1">&lt;!-- Board squares will be generated here by JavaScript --&gt;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s3">&lt;/</span><span class="s6">div</span><span class="s3">&gt;</span></p>
-<p class="p3"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s3">&lt;</span><span class="s6">div</span><span class="s4"> </span><span class="s2">class</span><span class="s3">=</span><span class="s1">"text-lg font-semibold text-gray-700"</span><span class="s3">&gt;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s3">&lt;</span><span class="s6">p</span><span class="s3">&gt;</span><span class="s1">Current Player: </span><span class="s3">&lt;</span><span class="s6">span</span><span class="s1"> </span><span class="s2">id</span><span class="s3">=</span><span class="s5">"currentPlayerDisplay"</span><span class="s1"> </span><span class="s2">class</span><span class="s3">=</span><span class="s5">"text-red-500"</span><span class="s3">&gt;</span><span class="s1">Player 1</span><span class="s3">&lt;/</span><span class="s6">span</span><span class="s3">&gt;&lt;/</span><span class="s6">p</span><span class="s3">&gt;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s3">&lt;</span><span class="s6">p</span><span class="s3">&gt;</span><span class="s1">Message: </span><span class="s3">&lt;</span><span class="s6">span</span><span class="s1"> </span><span class="s2">id</span><span class="s3">=</span><span class="s5">"gameMessage"</span><span class="s1"> </span><span class="s2">class</span><span class="s3">=</span><span class="s5">"text-gray-600"</span><span class="s3">&gt;</span><span class="s1">Welcome to King's Valley!</span><span class="s3">&lt;/</span><span class="s6">span</span><span class="s3">&gt;&lt;/</span><span class="s6">p</span><span class="s3">&gt;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s3">&lt;/</span><span class="s6">div</span><span class="s3">&gt;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;/</span><span class="s6">div</span><span class="s3">&gt;</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s1">script</span><span class="s3">&gt;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s12">const</span><span class="s1"> boardElement </span><span class="s7">=</span><span class="s1"> document</span><span class="s7">.</span><span class="s1">getElementById</span><span class="s7">(</span><span class="s8">'gameBoard'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s12">const</span><span class="s1"> currentPlayerDisplay </span><span class="s7">=</span><span class="s1"> document</span><span class="s7">.</span><span class="s1">getElementById</span><span class="s7">(</span><span class="s8">'currentPlayerDisplay'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s12">const</span><span class="s1"> gameMessage </span><span class="s7">=</span><span class="s1"> document</span><span class="s7">.</span><span class="s1">getElementById</span><span class="s7">(</span><span class="s8">'gameMessage'</span><span class="s7">);</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">// Represents the 5x5 game board</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">// 0: empty, 1: Player 1 Soldier, 2: Player 2 Soldier, 1K: Player 1 King, 2K: Player 2 King</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s12">let</span><span class="s1"> board </span><span class="s7">=</span><span class="s1"> </span><span class="s7">[</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">[</span><span class="s13">2</span><span class="s7">,</span><span class="s1"> </span><span class="s13">2</span><span class="s7">,</span><span class="s1"> </span><span class="s8">'2K'</span><span class="s7">,</span><span class="s1"> </span><span class="s13">2</span><span class="s7">,</span><span class="s1"> </span><span class="s13">2</span><span class="s7">],</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">[</span><span class="s13">0</span><span class="s7">,</span><span class="s1"> </span><span class="s13">0</span><span class="s7">,</span><span class="s1"> </span><span class="s13">0</span><span class="s7">,</span><span class="s1"> </span><span class="s13">0</span><span class="s7">,</span><span class="s1"> </span><span class="s13">0</span><span class="s7">],</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s7">[</span><span class="s13">0</span><span class="s7">,</span><span class="s4"> </span><span class="s13">0</span><span class="s7">,</span><span class="s4"> </span><span class="s13">0</span><span class="s7">,</span><span class="s4"> </span><span class="s13">0</span><span class="s7">,</span><span class="s4"> </span><span class="s13">0</span><span class="s7">],</span><span class="s4"> </span><span class="s1">// Center square (2,2) is the King's Valley</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">[</span><span class="s13">0</span><span class="s7">,</span><span class="s1"> </span><span class="s13">0</span><span class="s7">,</span><span class="s1"> </span><span class="s13">0</span><span class="s7">,</span><span class="s1"> </span><span class="s13">0</span><span class="s7">,</span><span class="s1"> </span><span class="s13">0</span><span class="s7">],</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">[</span><span class="s13">1</span><span class="s7">,</span><span class="s1"> </span><span class="s13">1</span><span class="s7">,</span><span class="s1"> </span><span class="s8">'1K'</span><span class="s7">,</span><span class="s1"> </span><span class="s13">1</span><span class="s7">,</span><span class="s1"> </span><span class="s13">1</span><span class="s7">]</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">];</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s12">let</span><span class="s4"> currentPlayer </span><span class="s7">=</span><span class="s4"> </span><span class="s13">1</span><span class="s7">;</span><span class="s4"> </span><span class="s1">// 1 for Player 1, 2 for Player 2</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s12">let</span><span class="s4"> selectedPiece </span><span class="s7">=</span><span class="s4"> </span><span class="s12">null</span><span class="s7">;</span><span class="s4"> </span><span class="s1">// To keep track of the piece currently selected</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">// Function to render the board based on the 'board' array</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s12">function</span><span class="s1"> renderBoard</span><span class="s7">()</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span>boardElement</span><span class="s7">.</span><span class="s1">innerHTML </span><span class="s7">=</span><span class="s1"> </span><span class="s8">''</span><span class="s7">;</span><span class="s1"> </span><span class="s11">// Clear existing board</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s12">for</span><span class="s1"> </span><span class="s7">(</span><span class="s12">let</span><span class="s1"> row </span><span class="s7">=</span><span class="s1"> </span><span class="s13">0</span><span class="s7">;</span><span class="s1"> row </span><span class="s7">&lt;</span><span class="s1"> </span><span class="s13">5</span><span class="s7">;</span><span class="s1"> row</span><span class="s7">++)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s12">for</span><span class="s1"> </span><span class="s7">(</span><span class="s12">let</span><span class="s1"> col </span><span class="s7">=</span><span class="s1"> </span><span class="s13">0</span><span class="s7">;</span><span class="s1"> col </span><span class="s7">&lt;</span><span class="s1"> </span><span class="s13">5</span><span class="s7">;</span><span class="s1"> col</span><span class="s7">++)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span></span><span class="s12">const</span><span class="s1"> square </span><span class="s7">=</span><span class="s1"> document</span><span class="s7">.</span><span class="s1">createElement</span><span class="s7">(</span><span class="s8">'div'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span>square</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">add</span><span class="s7">(</span><span class="s8">'square'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span>square</span><span class="s7">.</span><span class="s1">dataset</span><span class="s7">.</span><span class="s1">row </span><span class="s7">=</span><span class="s1"> row</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span>square</span><span class="s7">.</span><span class="s1">dataset</span><span class="s7">.</span><span class="s1">col </span><span class="s7">=</span><span class="s1"> col</span><span class="s7">;</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span></span><span class="s12">const</span><span class="s1"> pieceType </span><span class="s7">=</span><span class="s1"> board</span><span class="s7">[</span><span class="s1">row</span><span class="s7">][</span><span class="s1">col</span><span class="s7">];</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span></span><span class="s12">if</span><span class="s1"> </span><span class="s7">(</span><span class="s1">pieceType </span><span class="s7">!==</span><span class="s1"> </span><span class="s13">0</span><span class="s7">)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                        </span></span><span class="s12">const</span><span class="s1"> piece </span><span class="s7">=</span><span class="s1"> document</span><span class="s7">.</span><span class="s1">createElement</span><span class="s7">(</span><span class="s8">'div'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                        </span>piece</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">add</span><span class="s7">(</span><span class="s8">'piece'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                        </span>piece</span><span class="s7">.</span><span class="s1">dataset</span><span class="s7">.</span><span class="s1">row </span><span class="s7">=</span><span class="s1"> row</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                        </span>piece</span><span class="s7">.</span><span class="s1">dataset</span><span class="s7">.</span><span class="s1">col </span><span class="s7">=</span><span class="s1"> col</span><span class="s7">;</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                        </span></span><span class="s12">if</span><span class="s1"> </span><span class="s7">(</span><span class="s1">pieceType </span><span class="s7">===</span><span class="s1"> </span><span class="s13">1</span><span class="s7">)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                            </span>piece</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">add</span><span class="s7">(</span><span class="s8">'player-1'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                            </span>piece</span><span class="s7">.</span><span class="s1">textContent </span><span class="s7">=</span><span class="s1"> </span><span class="s8">'S'</span><span class="s7">;</span><span class="s1"> </span><span class="s11">// Soldier</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                        </span></span><span class="s7">}</span><span class="s1"> </span><span class="s12">else</span><span class="s1"> </span><span class="s12">if</span><span class="s1"> </span><span class="s7">(</span><span class="s1">pieceType </span><span class="s7">===</span><span class="s1"> </span><span class="s8">'1K'</span><span class="s7">)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                            </span>piece</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">add</span><span class="s7">(</span><span class="s8">'player-1'</span><span class="s7">,</span><span class="s1"> </span><span class="s8">'king'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                            </span>piece</span><span class="s7">.</span><span class="s1">textContent </span><span class="s7">=</span><span class="s1"> </span><span class="s8">'K'</span><span class="s7">;</span><span class="s1"> </span><span class="s11">// King</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                        </span></span><span class="s7">}</span><span class="s1"> </span><span class="s12">else</span><span class="s1"> </span><span class="s12">if</span><span class="s1"> </span><span class="s7">(</span><span class="s1">pieceType </span><span class="s7">===</span><span class="s1"> </span><span class="s13">2</span><span class="s7">)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                            </span>piece</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">add</span><span class="s7">(</span><span class="s8">'player-2'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                            </span>piece</span><span class="s7">.</span><span class="s1">textContent </span><span class="s7">=</span><span class="s1"> </span><span class="s8">'S'</span><span class="s7">;</span><span class="s1"> </span><span class="s11">// Soldier</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                        </span></span><span class="s7">}</span><span class="s1"> </span><span class="s12">else</span><span class="s1"> </span><span class="s12">if</span><span class="s1"> </span><span class="s7">(</span><span class="s1">pieceType </span><span class="s7">===</span><span class="s1"> </span><span class="s8">'2K'</span><span class="s7">)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                            </span>piece</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">add</span><span class="s7">(</span><span class="s8">'player-2'</span><span class="s7">,</span><span class="s1"> </span><span class="s8">'king'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                            </span>piece</span><span class="s7">.</span><span class="s1">textContent </span><span class="s7">=</span><span class="s1"> </span><span class="s8">'K'</span><span class="s7">;</span><span class="s1"> </span><span class="s11">// King</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                        </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                        </span>piece</span><span class="s7">.</span><span class="s1">addEventListener</span><span class="s7">(</span><span class="s8">'click'</span><span class="s7">,</span><span class="s1"> handlePieceClick</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                        </span>square</span><span class="s7">.</span><span class="s1">appendChild</span><span class="s7">(</span><span class="s1">piece</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span>square</span><span class="s7">.</span><span class="s1">addEventListener</span><span class="s7">(</span><span class="s8">'click'</span><span class="s7">,</span><span class="s1"> handleSquareClick</span><span class="s7">);</span><span class="s1"> </span><span class="s11">// Add click listener to squares for movement</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span>boardElement</span><span class="s7">.</span><span class="s1">appendChild</span><span class="s7">(</span><span class="s1">square</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span>updateGameInfo</span><span class="s7">();</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">// Handles clicking on a piece (to select it)</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s12">function</span><span class="s1"> handlePieceClick</span><span class="s7">(</span><span class="s1">event</span><span class="s7">)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s12">const</span><span class="s1"> clickedPiece </span><span class="s7">=</span><span class="s1"> event</span><span class="s7">.</span><span class="s1">target</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s12">const</span><span class="s1"> row </span><span class="s7">=</span><span class="s1"> parseInt</span><span class="s7">(</span><span class="s1">clickedPiece</span><span class="s7">.</span><span class="s1">dataset</span><span class="s7">.</span><span class="s1">row</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s12">const</span><span class="s1"> col </span><span class="s7">=</span><span class="s1"> parseInt</span><span class="s7">(</span><span class="s1">clickedPiece</span><span class="s7">.</span><span class="s1">dataset</span><span class="s7">.</span><span class="s1">col</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s12">const</span><span class="s1"> pieceType </span><span class="s7">=</span><span class="s1"> board</span><span class="s7">[</span><span class="s1">row</span><span class="s7">][</span><span class="s1">col</span><span class="s7">];</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">            </span></span><span class="s1">// Check if it's the current player's piece</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s12">if</span><span class="s1"> </span><span class="s7">((</span><span class="s1">currentPlayer </span><span class="s7">===</span><span class="s1"> </span><span class="s13">1</span><span class="s1"> </span><span class="s7">&amp;&amp;</span><span class="s1"> </span><span class="s7">(</span><span class="s1">pieceType </span><span class="s7">===</span><span class="s1"> </span><span class="s13">1</span><span class="s1"> </span><span class="s7">||</span><span class="s1"> pieceType </span><span class="s7">===</span><span class="s1"> </span><span class="s8">'1K'</span><span class="s7">))</span><span class="s1"> </span><span class="s7">||</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s7">(</span><span class="s1">currentPlayer </span><span class="s7">===</span><span class="s1"> </span><span class="s13">2</span><span class="s1"> </span><span class="s7">&amp;&amp;</span><span class="s1"> </span><span class="s7">(</span><span class="s1">pieceType </span><span class="s7">===</span><span class="s1"> </span><span class="s13">2</span><span class="s1"> </span><span class="s7">||</span><span class="s1"> pieceType </span><span class="s7">===</span><span class="s1"> </span><span class="s8">'2K'</span><span class="s7">)))</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s12">if</span><span class="s1"> </span><span class="s7">(</span><span class="s1">selectedPiece</span><span class="s7">)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">                    </span></span><span class="s1">// Deselect previously selected piece</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span>selectedPiece</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">remove</span><span class="s7">(</span><span class="s8">'border-4'</span><span class="s7">,</span><span class="s1"> </span><span class="s8">'border-yellow-400'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span>selectedPiece </span><span class="s7">=</span><span class="s1"> clickedPiece</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span>selectedPiece</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">add</span><span class="s7">(</span><span class="s8">'border-4'</span><span class="s7">,</span><span class="s1"> </span><span class="s8">'border-yellow-400'</span><span class="s7">);</span><span class="s1"> </span><span class="s11">// Highlight selected piece</span></p>
-<p class="p7"><span class="s4"><span class="Apple-converted-space">                </span>gameMessage</span><span class="s7">.</span><span class="s4">textContent </span><span class="s7">=</span><span class="s4"> </span><span class="s1">`Piece selected at (</span><span class="s7">${</span><span class="s4">row</span><span class="s7">}</span><span class="s1">, </span><span class="s7">${</span><span class="s4">col</span><span class="s7">}</span><span class="s1">). Now click an empty square to move.`</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span><span class="s1"> </span><span class="s12">else</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p7"><span class="s4"><span class="Apple-converted-space">                </span>gameMessage</span><span class="s7">.</span><span class="s4">textContent </span><span class="s7">=</span><span class="s4"> </span><span class="s1">"That's not your piece, or it's not your turn!"</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">// Handles clicking on a square (to move to it)</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s12">function</span><span class="s1"> handleSquareClick</span><span class="s7">(</span><span class="s1">event</span><span class="s7">)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s12">const</span><span class="s1"> clickedSquare </span><span class="s7">=</span><span class="s1"> event</span><span class="s7">.</span><span class="s1">currentTarget</span><span class="s7">;</span><span class="s1"> </span><span class="s11">// Use currentTarget to get the square div</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s12">const</span><span class="s1"> targetRow </span><span class="s7">=</span><span class="s1"> parseInt</span><span class="s7">(</span><span class="s1">clickedSquare</span><span class="s7">.</span><span class="s1">dataset</span><span class="s7">.</span><span class="s1">row</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s12">const</span><span class="s1"> targetCol </span><span class="s7">=</span><span class="s1"> parseInt</span><span class="s7">(</span><span class="s1">clickedSquare</span><span class="s7">.</span><span class="s1">dataset</span><span class="s7">.</span><span class="s1">col</span><span class="s7">);</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s12">if</span><span class="s1"> </span><span class="s7">(</span><span class="s1">selectedPiece</span><span class="s7">)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s12">const</span><span class="s1"> startRow </span><span class="s7">=</span><span class="s1"> parseInt</span><span class="s7">(</span><span class="s1">selectedPiece</span><span class="s7">.</span><span class="s1">dataset</span><span class="s7">.</span><span class="s1">row</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s12">const</span><span class="s1"> startCol </span><span class="s7">=</span><span class="s1"> parseInt</span><span class="s7">(</span><span class="s1">selectedPiece</span><span class="s7">.</span><span class="s1">dataset</span><span class="s7">.</span><span class="s1">col</span><span class="s7">);</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">                </span></span><span class="s1">// Basic validation: Must be an empty square</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s12">if</span><span class="s1"> </span><span class="s7">(</span><span class="s1">board</span><span class="s7">[</span><span class="s1">targetRow</span><span class="s7">][</span><span class="s1">targetCol</span><span class="s7">]</span><span class="s1"> </span><span class="s7">===</span><span class="s1"> </span><span class="s13">0</span><span class="s7">)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">                    </span></span><span class="s1">// For now, we'll allow any move to an empty square.</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">                    </span></span><span class="s1">// Later, you'll add King's Valley specific movement rules here.</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">                    </span></span><span class="s1">// Example: Check if move is horizontal, vertical, or diagonal and slides to obstacle/edge.</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">                    </span></span><span class="s1">// Move the piece in the board array</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span>board</span><span class="s7">[</span><span class="s1">targetRow</span><span class="s7">][</span><span class="s1">targetCol</span><span class="s7">]</span><span class="s1"> </span><span class="s7">=</span><span class="s1"> board</span><span class="s7">[</span><span class="s1">startRow</span><span class="s7">][</span><span class="s1">startCol</span><span class="s7">];</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span>board</span><span class="s7">[</span><span class="s1">startRow</span><span class="s7">][</span><span class="s1">startCol</span><span class="s7">]</span><span class="s1"> </span><span class="s7">=</span><span class="s1"> </span><span class="s13">0</span><span class="s7">;</span><span class="s1"> </span><span class="s11">// Clear the old position</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">                    </span></span><span class="s1">// Deselect piece and re-render board</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span>selectedPiece</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">remove</span><span class="s7">(</span><span class="s8">'border-4'</span><span class="s7">,</span><span class="s1"> </span><span class="s8">'border-yellow-400'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span>selectedPiece </span><span class="s7">=</span><span class="s1"> </span><span class="s12">null</span><span class="s7">;</span></p>
-<p class="p6"><span class="s1"><span class="Apple-converted-space">                    </span></span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span></span><span class="s11">// Switch turn</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                    </span>currentPlayer </span><span class="s7">=</span><span class="s1"> currentPlayer </span><span class="s7">===</span><span class="s1"> </span><span class="s13">1</span><span class="s1"> </span><span class="s7">?</span><span class="s1"> </span><span class="s13">2</span><span class="s1"> </span><span class="s7">:</span><span class="s1"> </span><span class="s13">1</span><span class="s7">;</span></p>
-<p class="p7"><span class="s4"><span class="Apple-converted-space">                    </span>gameMessage</span><span class="s7">.</span><span class="s4">textContent </span><span class="s7">=</span><span class="s4"> </span><span class="s1">"Piece moved! Now it's the other player's turn."</span><span class="s7">;</span></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">                    </span>renderBoard</span><span class="s7">();</span><span class="s4"> </span><span class="s1">// Re-render the board to show the new position</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s7">}</span><span class="s1"> </span><span class="s12">else</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p7"><span class="s4"><span class="Apple-converted-space">                    </span>gameMessage</span><span class="s7">.</span><span class="s4">textContent </span><span class="s7">=</span><span class="s4"> </span><span class="s1">"That square is not empty. Please select an empty square."</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span><span class="s1"> </span><span class="s12">else</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span>gameMessage</span><span class="s7">.</span><span class="s1">textContent </span><span class="s7">=</span><span class="s1"> </span><span class="s8">"Select a piece first!"</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">// Updates the display for current player and messages</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s12">function</span><span class="s1"> updateGameInfo</span><span class="s7">()</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span>currentPlayerDisplay</span><span class="s7">.</span><span class="s1">textContent </span><span class="s7">=</span><span class="s1"> </span><span class="s8">`Player </span><span class="s7">${</span><span class="s1">currentPlayer</span><span class="s7">}</span><span class="s8">`</span><span class="s7">;</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span>currentPlayerDisplay</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">remove</span><span class="s7">(</span><span class="s8">'text-red-500'</span><span class="s7">,</span><span class="s1"> </span><span class="s8">'text-blue-500'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s12">if</span><span class="s1"> </span><span class="s7">(</span><span class="s1">currentPlayer </span><span class="s7">===</span><span class="s1"> </span><span class="s13">1</span><span class="s7">)</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span>currentPlayerDisplay</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">add</span><span class="s7">(</span><span class="s8">'text-red-500'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span><span class="s1"> </span><span class="s12">else</span><span class="s1"> </span><span class="s7">{</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span>currentPlayerDisplay</span><span class="s7">.</span><span class="s1">classList</span><span class="s7">.</span><span class="s1">add</span><span class="s7">(</span><span class="s8">'text-blue-500'</span><span class="s7">);</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s7">}</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s7">}</span></p>
-<p class="p6"><span class="s10"></span><br></p>
-<p class="p5"><span class="s4"><span class="Apple-converted-space">        </span></span><span class="s1">// Initial render when the page loads</span></p>
-<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span>document</span><span class="s7">.</span><span class="s1">addEventListener</span><span class="s7">(</span><span class="s8">'DOMContentLoaded'</span><span class="s7">,</span><span class="s1"> renderBoard</span><span class="s7">);</span></p>
-<p class="p1"><span class="s4"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;/</span><span class="s1">script</span><span class="s3">&gt;</span></p>
-<p class="p1"><span class="s3">&lt;/</span><span class="s1">body</span><span class="s3">&gt;</span></p>
-<p class="p1"><span class="s3">&lt;/</span><span class="s1">html</span><span class="s3">&gt;</span></p>
-<p class="p6"><span class="s10"></span><br></p>
+    <div class="game-container">
+        <h1 class="game-title">King's Valley</h1>
+        <div id="gameBoard" class="board">
+            <!-- Board squares will be generated here by JavaScript -->
+        </div>
+        <div class="text-lg font-semibold text-gray-700">
+            <p>Current Player: <span id="currentPlayerDisplay" class="text-red-500">Player 1</span></p>
+            <p>Message: <span id="gameMessage" class="text-gray-600">Welcome to King's Valley!</span></p>
+        </div>
+    </div>
+
+    <script>
+        const boardElement = document.getElementById('gameBoard');
+        const currentPlayerDisplay = document.getElementById('currentPlayerDisplay');
+        const gameMessage = document.getElementById('gameMessage');
+
+        // Represents the 5x5 game board
+        // 0: empty, 1: Player 1 Soldier, 2: Player 2 Soldier, 1K: Player 1 King, 2K: Player 2 King
+        let board = [
+            [2, 2, '2K', 2, 2],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0], // Center square (2,2) is the King's Valley
+            [0, 0, 0, 0, 0],
+            [1, 1, '1K', 1, 1]
+        ];
+
+        let currentPlayer = 1; // 1 for Player 1, 2 for Player 2
+        let selectedPiece = null; // To keep track of the piece currently selected
+
+        // Function to render the board based on the 'board' array
+        function renderBoard() {
+            boardElement.innerHTML = ''; // Clear existing board
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const square = document.createElement('div');
+                    square.classList.add('square');
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+
+                    const pieceType = board[row][col];
+                    if (pieceType !== 0) {
+                        const piece = document.createElement('div');
+                        piece.classList.add('piece');
+                        piece.dataset.row = row;
+                        piece.dataset.col = col;
+
+                        if (pieceType === 1) {
+                            piece.classList.add('player-1');
+                            piece.textContent = 'S'; // Soldier
+                        } else if (pieceType === '1K') {
+                            piece.classList.add('player-1', 'king');
+                            piece.textContent = 'K'; // King
+                        } else if (pieceType === 2) {
+                            piece.classList.add('player-2');
+                            piece.textContent = 'S'; // Soldier
+                        } else if (pieceType === '2K') {
+                            piece.classList.add('player-2', 'king');
+                            piece.textContent = 'K'; // King
+                        }
+                        piece.addEventListener('click', handlePieceClick);
+                        square.appendChild(piece);
+                    }
+                    square.addEventListener('click', handleSquareClick); // Add click listener to squares for movement
+                    boardElement.appendChild(square);
+                }
+            }
+            updateGameInfo();
+        }
+
+        // Handles clicking on a piece (to select it)
+        function handlePieceClick(event) {
+            const clickedPiece = event.target;
+            const row = parseInt(clickedPiece.dataset.row);
+            const col = parseInt(clickedPiece.dataset.col);
+            const pieceType = board[row][col];
+
+            // Check if it's the current player's piece
+            if ((currentPlayer === 1 && (pieceType === 1 || pieceType === '1K')) ||
+                (currentPlayer === 2 && (pieceType === 2 || pieceType === '2K'))) {
+
+                if (selectedPiece) {
+                    // Deselect previously selected piece
+                    selectedPiece.classList.remove('border-4', 'border-yellow-400');
+                }
+                selectedPiece = clickedPiece;
+                selectedPiece.classList.add('border-4', 'border-yellow-400'); // Highlight selected piece
+                gameMessage.textContent = `Piece selected at (${row}, ${col}). Now click an empty square to move.`;
+            } else {
+                gameMessage.textContent = "That's not your piece, or it's not your turn!";
+            }
+        }
+
+        // Handles clicking on a square (to move to it)
+        function handleSquareClick(event) {
+            const clickedSquare = event.currentTarget; // Use currentTarget to get the square div
+            const targetRow = parseInt(clickedSquare.dataset.row);
+            const targetCol = parseInt(clickedSquare.dataset.col);
+
+            if (selectedPiece) {
+                const startRow = parseInt(selectedPiece.dataset.row);
+                const startCol = parseInt(selectedPiece.dataset.col);
+
+                // Basic validation: Must be an empty square
+                if (board[targetRow][targetCol] === 0) {
+                    // For now, we'll allow any move to an empty square.
+                    // Later, you'll add King's Valley specific movement rules here.
+                    // Example: Check if move is horizontal, vertical, or diagonal and slides to obstacle/edge.
+
+                    // Move the piece in the board array
+                    board[targetRow][targetCol] = board[startRow][startCol];
+                    board[startRow][startCol] = 0; // Clear the old position
+
+                    // Deselect piece and re-render board
+                    selectedPiece.classList.remove('border-4', 'border-yellow-400');
+                    selectedPiece = null;
+                    
+                    // Switch turn
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    gameMessage.textContent = "Piece moved! Now it's the other player's turn.";
+                    renderBoard(); // Re-render the board to show the new position
+                } else {
+                    gameMessage.textContent = "That square is not empty. Please select an empty square.";
+                }
+            } else {
+                gameMessage.textContent = "Select a piece first!";
+            }
+        }
+
+        // Updates the display for current player and messages
+        function updateGameInfo() {
+            currentPlayerDisplay.textContent = `Player ${currentPlayer}`;
+            currentPlayerDisplay.classList.remove('text-red-500', 'text-blue-500');
+            if (currentPlayer === 1) {
+                currentPlayerDisplay.classList.add('text-red-500');
+            } else {
+                currentPlayerDisplay.classList.add('text-blue-500');
+            }
+        }
+
+        // Initial render when the page loads
+        document.addEventListener('DOMContentLoaded', renderBoard);
+    </script>
 </body>
 </html>
