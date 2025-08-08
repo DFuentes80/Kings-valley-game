@@ -286,6 +286,8 @@
         // Firebase variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         let firebaseConfig = {};
+        console.log("Raw __firebase_config:", typeof __firebase_config !== 'undefined' ? __firebase_config : 'undefined'); // Log raw config
+
         try {
             // Attempt to parse the __firebase_config. Handle cases where it might be undefined or an empty string.
             firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' && __firebase_config !== '' ? __firebase_config : '{}');
@@ -295,10 +297,10 @@
         }
 
         // Ensure projectId is present. If not, use a placeholder and warn.
-        if (!firebaseConfig.projectId) {
-            console.warn("Firebase projectId not found in __firebase_config. Using a placeholder. Please ensure your Canvas environment provides a valid Firebase config.");
+        if (!firebaseConfig.projectId || firebaseConfig.projectId === 'your-default-project-id') {
+            console.warn("Firebase projectId not found or is default. Using a placeholder. Please ensure your Canvas environment provides a valid Firebase config.");
             // Provide default values for all required Firebase config properties
-            firebaseConfig.projectId = 'your-default-project-id';
+            firebaseConfig.projectId = firebaseConfig.projectId || 'your-default-project-id';
             firebaseConfig.apiKey = firebaseConfig.apiKey || 'your-default-api-key';
             firebaseConfig.authDomain = firebaseConfig.authDomain || 'your-default-auth-domain';
             firebaseConfig.databaseURL = firebaseConfig.databaseURL || 'your-default-database-url';
