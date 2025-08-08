@@ -119,6 +119,12 @@
             font-size: 1.5rem;
         }
 
+        .highlight-move {
+            background-color: rgba(46, 204, 113, 0.5); /* Green highlight for valid moves */
+            cursor: pointer;
+            border: 2px dashed #27ae60;
+        }
+
         /* Responsive adjustments */
         @media (max-width: 600px) {
             .game-container {
@@ -149,7 +155,7 @@
         <div id="gameBoard" class="board">
             <!-- Board squares will be generated here by JavaScript -->
         </div>
-        <div class="text-lg font-semibold text-gray-700">
+        <div class="text-lg font-semibold text-gray-700 mt-4">
             <p>Current Player: <span id="currentPlayerDisplay" class="text-red-500">Player 1</span></p>
             <p>Message: <span id="gameMessage" class="text-gray-600">Welcome to King's Valley!</span></p>
         </div>
@@ -171,7 +177,8 @@
         ];
 
         let currentPlayer = 1; // 1 for Player 1, 2 for Player 2
-        let selectedPiece = null; // To keep track of the piece currently selected
+        let selectedPiece = null; // To keep track of the piece currently selected (DOM element)
+        let selectedPieceCoords = null; // To keep track of the selected piece's [row, col]
 
         // Function to render the board based on the 'board' array
         function renderBoard() {
@@ -213,6 +220,110 @@
             updateGameInfo();
         }
 
+        // Helper function to check if coordinates are within board bounds
+        function isInBounds(row, col) {
+            return row >= 0 && row < 5 && col >= 0 && col < 5;
+        }
+
+        // Helper function to check if a square is occupied
+        function isOccupied(row, col) {
+            return board[row][col] !== 0;
+        }
+
+        // Function to determine if a move is valid according to King's Valley rules
+        function isValidMove(startRow, startCol, targetRow, targetCol) {
+            // 1. Must be within bounds and target must be empty
+            if (!isInBounds(targetRow, targetCol) || isOccupied(targetRow, targetCol)) {
+                return false;
+            }
+
+            const pieceType = board[startRow][startCol];
+            const isKing = (pieceType === '1K' || pieceType === '2K');
+
+            // 2. Calculate direction
+            const dRow = targetRow - startRow;
+            const dCol = targetCol - startCol;
+
+            let rowDir = 0;
+            let colDir = 0;
+
+            if (dRow === 0 && dCol !== 0) { // Horizontal
+                colDir = dCol > 0 ? 1 : -1;
+            } else if (dCol === 0 && dRow !== 0) { // Vertical
+                rowDir = dRow > 0 ? 1 : -1;
+            } else if (Math.abs(dRow) === Math.abs(dCol) && dRow !== 0) { // Diagonal
+                rowDir = dRow > 0 ? 1 : -1;
+                colDir = dCol > 0 ? 1 : -1;
+            } else {
+                return false; // Not horizontal, vertical, or diagonal
+            }
+
+            // 3. Simulate the slide and check for obstacles/stopping conditions
+            let currentRow = startRow + rowDir;
+            let currentCol = startCol + colDir;
+            let pathClear = true;
+            let stoppedByObstacle = false;
+
+            while (isInBounds(currentRow, currentCol) && !isOccupied(currentRow, currentCol)) {
+                // If the piece is a soldier and tries to stop on the King's Valley (2,2) mid-slide, it's invalid
+                if (!isKing && currentRow === 2 && currentCol === 2) {
+                    // A soldier cannot stop *on* the King's Valley square unless it's the final destination
+                    // and it's forced to stop there by an obstacle or edge.
+                    // If the *next* square is empty, it means the soldier is trying to stop mid-slide on KV.
+                    const nextRow = currentRow + rowDir;
+                    const nextCol = currentCol + colDir;
+                    if (isInBounds(nextRow, nextCol) && !isOccupied(nextRow, nextCol)) {
+                        return false; // Soldier cannot stop mid-slide on King's Valley
+                    }
+                }
+
+                if (currentRow === targetRow && currentCol === targetCol) {
+                    // Reached the target, now check if it's a valid stopping point
+                    const nextRow = targetRow + rowDir;
+                    const nextCol = targetCol + colDir;
+
+                    // Must stop adjacent to an obstacle or edge
+                    if (!isInBounds(nextRow, nextCol) || isOccupied(nextRow, nextCol)) {
+                        // Special rule: King can stop on (2,2). Soldiers cannot.
+                        if (targetRow === 2 && targetCol === 2 && !isKing) {
+                            return false; // Soldier cannot stop on King's Valley
+                        }
+                        return true; // Valid stop
+                    } else {
+                        return false; // Stopped mid-slide, not by obstacle or edge
+                    }
+                }
+
+                currentRow += rowDir;
+                currentCol += colDir;
+            }
+            return false; // Path blocked or didn't reach target correctly
+        }
+
+        // Function to find and highlight all valid moves for the selected piece
+        function highlightValidMoves() {
+            // Clear existing highlights
+            document.querySelectorAll('.highlight-move').forEach(square => {
+                square.classList.remove('highlight-move');
+            });
+
+            if (!selectedPieceCoords) return;
+
+            const [startRow, startCol] = selectedPieceCoords;
+
+            // Check all possible target squares
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    if (isValidMove(startRow, startCol, row, col)) {
+                        const targetSquare = boardElement.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
+                        if (targetSquare) {
+                            targetSquare.classList.add('highlight-move');
+                        }
+                    }
+                }
+            }
+        }
+
         // Handles clicking on a piece (to select it)
         function handlePieceClick(event) {
             const clickedPiece = event.target;
@@ -229,10 +340,21 @@
                     selectedPiece.classList.remove('border-4', 'border-yellow-400');
                 }
                 selectedPiece = clickedPiece;
+                selectedPieceCoords = [row, col];
                 selectedPiece.classList.add('border-4', 'border-yellow-400'); // Highlight selected piece
-                gameMessage.textContent = `Piece selected at (${row}, ${col}). Now click an empty square to move.`;
+                gameMessage.textContent = `Piece selected at (${row}, ${col}). Now click a highlighted square to move.`;
+                highlightValidMoves(); // Highlight valid moves for the selected piece
             } else {
                 gameMessage.textContent = "That's not your piece, or it's not your turn!";
+                // Clear any existing selection and highlights if clicking an invalid piece
+                if (selectedPiece) {
+                    selectedPiece.classList.remove('border-4', 'border-yellow-400');
+                    selectedPiece = null;
+                    selectedPieceCoords = null;
+                }
+                document.querySelectorAll('.highlight-move').forEach(square => {
+                    square.classList.remove('highlight-move');
+                });
             }
         }
 
@@ -242,30 +364,44 @@
             const targetRow = parseInt(clickedSquare.dataset.row);
             const targetCol = parseInt(clickedSquare.dataset.col);
 
-            if (selectedPiece) {
-                const startRow = parseInt(selectedPiece.dataset.row);
-                const startCol = parseInt(selectedPiece.dataset.col);
+            if (selectedPiece && selectedPieceCoords) {
+                const [startRow, startCol] = selectedPieceCoords;
 
-                // Basic validation: Must be an empty square
-                if (board[targetRow][targetCol] === 0) {
-                    // For now, we'll allow any move to an empty square.
-                    // Later, you'll add King's Valley specific movement rules here.
-                    // Example: Check if move is horizontal, vertical, or diagonal and slides to obstacle/edge.
-
+                // Validate the move using the King's Valley rules
+                if (isValidMove(startRow, startCol, targetRow, targetCol)) {
                     // Move the piece in the board array
                     board[targetRow][targetCol] = board[startRow][startCol];
                     board[startRow][startCol] = 0; // Clear the old position
 
-                    // Deselect piece and re-render board
+                    // Check for win condition: King reaches the King's Valley (2,2)
+                    const pieceMoved = board[targetRow][targetCol];
+                    if ((pieceMoved === '1K' || pieceMoved === '2K') && targetRow === 2 && targetCol === 2) {
+                        gameMessage.textContent = `Player ${currentPlayer} wins! The King reached the King's Valley!`;
+                        // You might want to add a "reset game" button or similar here
+                        // For now, the game just stops accepting moves.
+                        selectedPiece = null;
+                        selectedPieceCoords = null;
+                        document.querySelectorAll('.highlight-move').forEach(square => {
+                            square.classList.remove('highlight-move');
+                        });
+                        renderBoard();
+                        return; // End game
+                    }
+
+                    // Deselect piece and clear highlights
                     selectedPiece.classList.remove('border-4', 'border-yellow-400');
                     selectedPiece = null;
+                    selectedPieceCoords = null;
+                    document.querySelectorAll('.highlight-move').forEach(square => {
+                        square.classList.remove('highlight-move');
+                    });
                     
                     // Switch turn
                     currentPlayer = currentPlayer === 1 ? 2 : 1;
                     gameMessage.textContent = "Piece moved! Now it's the other player's turn.";
                     renderBoard(); // Re-render the board to show the new position
                 } else {
-                    gameMessage.textContent = "That square is not empty. Please select an empty square.";
+                    gameMessage.textContent = "Invalid move. Please select a highlighted square.";
                 }
             } else {
                 gameMessage.textContent = "Select a piece first!";
