@@ -285,7 +285,10 @@
 
         // Firebase variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // Ensure firebaseConfig is parsed correctly, handling potential empty string from environment
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' && __firebase_config !== '' ? __firebase_config : '{}');
+        console.log("Firebase Config:", firebaseConfig); // Log Firebase config for debugging
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -310,14 +313,19 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
+                console.log("User authenticated:", currentUserId);
             } else {
+                console.log("No user, attempting anonymous sign-in or custom token.");
                 try {
-                    if (typeof __initial_auth_token !== 'undefined') {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token !== '') { // Check for empty string too
+                        console.log("Signing in with custom token...");
                         await signInWithCustomToken(auth, __initial_auth_token);
                     } else {
+                        console.log("Signing in anonymously...");
                         await signInAnonymously(auth);
                     }
                     currentUserId = auth.currentUser.uid;
+                    console.log("Authentication successful, currentUserId:", currentUserId);
                 } catch (error) {
                     console.error("Firebase authentication error:", error);
                     gameMessage.textContent = "Error authenticating. Please refresh.";
@@ -345,6 +353,7 @@
                     lastUpdated: Date.now(),
                     gameMessage: gameMessage.textContent // Sync messages too
                 }, { merge: true }); // Use merge to avoid overwriting other fields
+                console.log("Game state updated in Firestore.");
             } catch (error) {
                 console.error("Error updating game in Firestore:", error);
                 gameMessage.textContent = "Error saving move. Check console.";
@@ -360,12 +369,15 @@
         function listenForGameUpdates(gameId) {
             if (unsubscribeGameListener) {
                 unsubscribeGameListener(); // Unsubscribe from previous listener if any
+                console.log("Unsubscribed from previous game listener.");
             }
 
             const gameDocRef = doc(db, `artifacts/${appId}/public/data/kingsvalley_games`, gameId);
+            console.log(`Listening for updates on game ID: ${gameId}`);
             unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const gameData = docSnap.data();
+                    console.log("Game data received from Firestore:", gameData);
                     // Update local game state
                     board = JSON.parse(gameData.board); // Parse board string back to array
                     currentPlayer = gameData.currentPlayer;
@@ -378,30 +390,35 @@
                         if (player1Id === currentUserId) {
                             myPlayerNumber = 1;
                             assignedPlayerDisplay.textContent = "Player 1 (Red)";
+                            console.log("Assigned as Player 1.");
                         } else if (player2Id === currentUserId) {
                             myPlayerNumber = 2;
                             assignedPlayerDisplay.textContent = "Player 2 (Blue)";
+                            console.log("Assigned as Player 2.");
                         } else if (!player1Id) { // If player1 is not set, this user becomes player1
                             player1Id = currentUserId;
                             myPlayerNumber = 1;
                             assignedPlayerDisplay.textContent = "Player 1 (Red)";
+                            console.log("Assigned as Player 1 (first slot available).");
                             updateGameInFirestore(); // Update Firestore with player1Id
                         } else if (!player2Id) { // If player2 is not set, this user becomes player2
                             player2Id = currentUserId;
                             myPlayerNumber = 2;
                             assignedPlayerDisplay.textContent = "Player 2 (Blue)";
+                            console.log("Assigned as Player 2 (second slot available).");
                             updateGameInFirestore(); // Update Firestore with player2Id
                         } else {
                             // Both player slots are taken, this user is a spectator
                             myPlayerNumber = 0;
                             assignedPlayerDisplay.textContent = "Spectator";
                             gameMessage.textContent = "This game is full. You are a spectator.";
+                            console.log("Assigned as Spectator.");
                         }
                     }
 
                     renderBoard(); // Re-render the board with the updated state
                 } else {
-                    console.log("Game does not exist.");
+                    console.log("Game document does not exist in Firestore.");
                     gameMessage.textContent = "Game not found. Please create or join another.";
                     currentGameId = null;
                     gameIdDisplay.textContent = "None";
@@ -428,20 +445,28 @@
         // --- Game Control Functions ---
 
         async function createGame() {
+            console.log("Attempting to create game...");
+            console.log("currentUserId:", currentUserId);
+            console.log("appId:", appId);
+
             if (!currentUserId) {
-                gameMessage.textContent = "Please wait, authenticating...";
+                gameMessage.textContent = "Please wait, authenticating... (Try clicking again in a moment)";
+                console.warn("Authentication not ready. currentUserId is null.");
                 return;
             }
             loadingIndicator.classList.remove('hidden');
+            gameMessage.textContent = "Creating new game...";
             try {
                 // Generate a simple unique ID for the game
                 const newGameId = Math.random().toString(36).substring(2, 9).toUpperCase();
+                console.log("Generated new game ID:", newGameId);
                 const gameDocRef = doc(db, `artifacts/${appId}/public/data/kingsvalley_games`, newGameId);
                 
                 // Check if game ID already exists (unlikely with random, but good practice)
                 const docSnap = await getDoc(gameDocRef);
                 if (docSnap.exists()) {
                     gameMessage.textContent = "Generated ID already exists, trying again...";
+                    console.warn("Generated game ID conflict. Retrying...");
                     loadingIndicator.classList.add('hidden');
                     setTimeout(createGame, 100); // Retry after a short delay
                     return;
@@ -455,15 +480,16 @@
                     [0, 0, 0, 0, 0],
                     [1, 1, '1K', 1, 1]
                 ];
-
+                console.log("Setting initial game state in Firestore for ID:", newGameId);
                 await setDoc(gameDocRef, {
                     board: JSON.stringify(initialBoard),
                     currentPlayer: 1,
                     player1Id: currentUserId,
                     player2Id: null, // Player 2 slot is empty
                     lastUpdated: Date.now(),
-                    gameMessage: "Game created! Share this ID with a friend."
+                    gameMessage: `Game created! ID: ${newGameId}. Share this with a friend.`
                 });
+                console.log("Firestore document set successfully.");
                 
                 gameMessage.textContent = `Game created! ID: ${newGameId}. Share this with a friend.`;
                 listenForGameUpdates(newGameId);
@@ -471,7 +497,7 @@
                 assignedPlayerDisplay.textContent = "Player 1 (Red)";
             } catch (error) {
                 console.error("Error creating game:", error);
-                gameMessage.textContent = "Failed to create game. Check console.";
+                gameMessage.textContent = `Failed to create game: ${error.message}. Check console for details.`;
             } finally {
                 loadingIndicator.classList.add('hidden');
             }
@@ -488,12 +514,15 @@
                 return;
             }
             loadingIndicator.classList.remove('hidden');
+            gameMessage.textContent = `Attempting to join game ${gameId}...`;
             try {
                 const gameDocRef = doc(db, `artifacts/${appId}/public/data/kingsvalley_games`, gameId);
                 const docSnap = await getDoc(gameDocRef);
 
                 if (docSnap.exists()) {
                     const gameData = docSnap.data();
+                    console.log("Game data found for joining:", gameData);
+
                     if (gameData.player1Id === currentUserId || gameData.player2Id === currentUserId) {
                         // User is already part of this game
                         gameMessage.textContent = `You are already in game ${gameId}.`;
@@ -508,6 +537,7 @@
                         listenForGameUpdates(gameId);
                         myPlayerNumber = 2;
                         assignedPlayerDisplay.textContent = "Player 2 (Blue)";
+                        console.log("Joined as Player 2.");
                     } else if (!gameData.player1Id) { // Edge case: Player 1 left, Player 2 joins as Player 1
                         await setDoc(gameDocRef, {
                             player1Id: currentUserId,
@@ -517,19 +547,22 @@
                         listenForGameUpdates(gameId);
                         myPlayerNumber = 1;
                         assignedPlayerDisplay.textContent = "Player 1 (Red)";
+                        console.log("Joined as Player 1 (filling empty slot).");
                     }
                     else {
                         gameMessage.textContent = "This game is full. You can spectate.";
                         listenForGameUpdates(gameId); // Still listen to updates for spectating
                         myPlayerNumber = 0;
                         assignedPlayerDisplay.textContent = "Spectator";
+                        console.log("Joined as Spectator (game full).");
                     }
                 } else {
                     gameMessage.textContent = "Game ID not found. Please check the ID or create a new game.";
+                    console.warn("Game ID not found:", gameId);
                 }
             } catch (error) {
                 console.error("Error joining game:", error);
-                gameMessage.textContent = "Failed to join game. Check console.";
+                gameMessage.textContent = `Failed to join game: ${error.message}. Check console for details.`;
             } finally {
                 loadingIndicator.classList.add('hidden');
             }
