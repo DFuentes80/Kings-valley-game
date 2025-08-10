@@ -7,7 +7,148 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* ... (Your existing CSS here) ... */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            flex-direction: column; /* Allow vertical stacking */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .game-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem; /* Increased padding */
+            text-align: center;
+            max-width: 90%; /* Responsive width */
+            width: 500px; /* Max width for larger screens */
+            margin-bottom: 20px; /* Space below game container */
+        }
+
+        .game-title {
+            font-size: 2.5rem; /* Larger title */
+            font-weight: 700;
+            color: #2c3e50; /* Darker title color */
+            margin-bottom: 1.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* 5x5 board */
+            grid-template-rows: repeat(5, 1fr);
+            width: 100%;
+            max-width: 400px; /* Fixed size for the board itself */
+            height: 400px;
+            margin: 0 auto 2rem auto; /* Center board and add margin below */
+            border: 6px solid #8e44ad; /* Purple border */
+            border-radius: 0.75rem; /* Rounded board corners */
+            overflow: hidden; /* Ensures pieces don't overflow rounded corners */
+        }
+
+        .square {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #34495e;
+            box-sizing: border-box;
+            border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle grid lines */
+        }
+
+        .square:nth-child(odd) {
+            background-color: #ecf0f1; /* Light gray */
+        }
+
+        .square:nth-child(even) {
+            background-color: #bdc3c7; /* Slightly darker gray */
+        }
+
+        /* Center square - King's Valley */
+        .square[data-row="2"][data-col="2"] {
+            background-color: #f39c12; /* Orange for the King's Valley */
+            color: #ffffff;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .piece {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%; /* Circular pieces */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .piece:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-1-color {
+            background-color: #e74c3c; /* Red */
+        }
+
+        .player-2-color {
+            background-color: #3498db; /* Blue */
+        }
+
+        .player-1-color.king {
+            background-color: #c0392b; /* Darker Red for King */
+            border: 3px solid #f1c40f; /* Gold border for King */
+            font-size: 1.5rem;
+        }
+
+        .player-2-color.king {
+            background-color: #2980b9; /* Darker Blue for King */
+            border: 3px solid #f1c40f; /* Gold border for King */
+            font-size: 1.5rem;
+        }
+
+        .highlight-move {
+            background-color: rgba(46, 204, 113, 0.5); /* Green highlight for valid moves */
+            cursor: pointer;
+            border: 2px dashed #27ae60;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 1.5rem;
+            }
+            .game-title {
+                font-size: 2rem;
+            }
+            .board {
+                max-width: 300px;
+                height: 300px;
+            }
+            .square {
+                font-size: 1.2rem;
+            }
+            .piece {
+                font-size: 1rem;
+            }
+            .player-1-color.king, .player-2-color.king {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -22,7 +163,7 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "firebase/app";
         import { getAnalytics } from "firebase/analytics";
@@ -51,7 +192,244 @@
         const currentPlayerDisplay = document.getElementById('currentPlayerDisplay');
         const gameMessage = document.getElementById('gameMessage');
 
-        // ... (The rest of your game's JavaScript code) ...
+        // Represents the 5x5 game board
+        // 0: empty, 1: Player 1 Soldier, 2: Player 2 Soldier, 1K: Player 1 King, 2K: Player 2 King
+        let board = [
+            [2, 2, '2K', 2, 2],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0], // Center square (2,2) is the King's Valley
+            [0, 0, 0, 0, 0],
+            [1, 1, '1K', 1, 1]
+        ];
+
+        let currentPlayer = 1; // 1 for Player 1, 2 for Player 2
+        let selectedPiece = null; // DOM element reference
+        let selectedPieceCoords = null; // [row, col]
+
+        // Function to render the board based on the 'board' array
+        function renderBoard() {
+            boardElement.innerHTML = ''; // Clear existing board
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const square = document.createElement('div');
+                    square.classList.add('square');
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+
+                    const pieceType = board[row][col];
+                    if (pieceType !== 0) {
+                        const piece = document.createElement('div');
+                        piece.classList.add('piece');
+                        piece.dataset.row = row;
+                        piece.dataset.col = col;
+
+                        // Use player-color classes
+                        if (pieceType === 1 || pieceType === '1K') {
+                            piece.classList.add('player-1-color');
+                            piece.textContent = (pieceType === 1) ? 'S' : 'K';
+                        } else if (pieceType === 2 || pieceType === '2K') {
+                            piece.classList.add('player-2-color');
+                            piece.textContent = (pieceType === 2) ? 'S' : 'K';
+                        }
+                        if (pieceType === '1K' || pieceType === '2K') {
+                            piece.classList.add('king');
+                        }
+                        
+                        piece.addEventListener('click', handlePieceClick);
+                        square.appendChild(piece);
+                    }
+                    square.addEventListener('click', handleSquareClick); // Add click listener to squares for movement
+                    boardElement.appendChild(square);
+                }
+            }
+            updateGameInfo();
+        }
+
+        // Helper function to check if coordinates are within board bounds
+        function isInBounds(row, col) {
+            return row >= 0 && row < 5 && col >= 0 && col < 5;
+        }
+
+        // Helper function to check if a square is occupied
+        function isOccupied(row, col) {
+            return board[row][col] !== 0;
+        }
+
+        // Function to determine if a move is valid according to King's Valley rules
+        function isValidMove(startRow, startCol, targetRow, targetCol) {
+            // 1. Target must be empty and within bounds
+            if (!isInBounds(targetRow, targetCol) || isOccupied(targetRow, targetCol)) {
+                return false;
+            }
+
+            const pieceType = board[startRow][startCol];
+            const isKing = (pieceType === '1K' || pieceType === '2K');
+
+            // 2. Calculate direction
+            const dRow = targetRow - startRow;
+            const dCol = targetCol - startCol;
+
+            let rowDir = 0;
+            let colDir = 0;
+
+            if (dRow === 0 && dCol !== 0) { // Horizontal
+                colDir = dCol > 0 ? 1 : -1;
+            } else if (dCol === 0 && dRow !== 0) { // Vertical
+                rowDir = dRow > 0 ? 1 : -1;
+            } else if (Math.abs(dRow) === Math.abs(dCol) && dRow !== 0) { // Diagonal
+                rowDir = dRow > 0 ? 1 : -1;
+                colDir = dCol > 0 ? 1 : -1;
+            } else {
+                return false; // Not horizontal, vertical, or diagonal
+            }
+
+            // 3. Simulate the slide to find the *actual* stopping point
+            let currentRow = startRow + rowDir;
+            let currentCol = startCol + colDir;
+            let actualStopRow = startRow;
+            let actualStopCol = startCol;
+
+            while (isInBounds(currentRow, currentCol) && !isOccupied(currentRow, currentCol)) {
+                actualStopRow = currentRow;
+                actualStopCol = currentCol;
+                currentRow += rowDir;
+                currentCol += colDir;
+            }
+
+            // The piece must stop at the actualStopRow/Col
+            // So, the targetRow/Col must be equal to actualStopRow/Col
+            if (targetRow !== actualStopRow || targetCol !== actualStopCol) {
+                return false; // Piece stopped mid-slide or went past an obstacle/edge
+            }
+
+            // Special rule: Soldier cannot stop on the King's Valley (2,2)
+            if (targetRow === 2 && targetCol === 2 && !isKing) {
+                return false; // Soldier cannot stop on King's Valley
+            }
+
+            return true; // Valid move
+        }
+
+        // Function to find and highlight all valid moves for the selected piece
+        function highlightValidMoves() {
+            // Clear existing highlights
+            document.querySelectorAll('.highlight-move').forEach(square => {
+                square.classList.remove('highlight-move');
+            });
+
+            if (!selectedPieceCoords) return;
+
+            const [startRow, startCol] = selectedPieceCoords;
+
+            // Check all possible target squares
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    if (isValidMove(startRow, startCol, row, col)) {
+                        const targetSquare = boardElement.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
+                        if (targetSquare) {
+                            targetSquare.classList.add('highlight-move');
+                        }
+                    }
+                }
+            }
+        }
+
+        // Handles clicking on a piece (to select it)
+        function handlePieceClick(event) {
+            const clickedPiece = event.target;
+            const row = parseInt(clickedPiece.dataset.row);
+            const col = parseInt(clickedPiece.dataset.col);
+            const pieceType = board[row][col];
+
+            // Check if it's the current player's piece
+            if ((currentPlayer === 1 && (pieceType === 1 || pieceType === '1K')) ||
+                (currentPlayer === 2 && (pieceType === 2 || pieceType === '2K'))) {
+
+                if (selectedPiece) {
+                    // Deselect previously selected piece
+                    selectedPiece.classList.remove('border-4', 'border-yellow-400');
+                }
+                selectedPiece = clickedPiece;
+                selectedPieceCoords = [row, col];
+                selectedPiece.classList.add('border-4', 'border-yellow-400'); // Highlight selected piece
+                gameMessage.textContent = `Piece selected at (${row}, ${col}). Now click a highlighted square to move.`;
+                highlightValidMoves(); // Highlight valid moves for the selected piece
+            } else {
+                gameMessage.textContent = "That's not your piece, or it's not your turn!";
+                // Clear any existing selection and highlights if clicking an invalid piece
+                if (selectedPiece) {
+                    selectedPiece.classList.remove('border-4', 'border-yellow-400');
+                    selectedPiece = null;
+                    selectedPieceCoords = null;
+                }
+                document.querySelectorAll('.highlight-move').forEach(square => {
+                    square.classList.remove('highlight-move');
+                });
+            }
+        }
+
+        // Handles clicking on a square (to move to it)
+        function handleSquareClick(event) {
+            const clickedSquare = event.currentTarget; // Use currentTarget to get the square div
+            const targetRow = parseInt(clickedSquare.dataset.row);
+            const targetCol = parseInt(clickedSquare.dataset.col);
+
+            if (selectedPiece && selectedPieceCoords) {
+                const [startRow, startCol] = selectedPieceCoords;
+
+                // Validate the move using the King's Valley rules
+                if (isValidMove(startRow, startCol, targetRow, targetCol)) {
+                    // Perform the move on the local board
+                    board[targetRow][targetCol] = board[startRow][startCol];
+                    board[startRow][startCol] = 0; // Clear the old position
+
+                    // Check for win condition: King reaches the King's Valley (2,2)
+                    const pieceMoved = board[targetRow][targetCol];
+                    if ((pieceMoved === '1K' || pieceMoved === '2K') && targetRow === 2 && targetCol === 2) {
+                        gameMessage.textContent = `Player ${currentPlayer} wins! The King reached the King's Valley!`;
+                        // Game ends here, no turn switch
+                        selectedPiece = null;
+                        selectedPieceCoords = null;
+                        document.querySelectorAll('.highlight-move').forEach(square => {
+                            square.classList.remove('highlight-move');
+                        });
+                        renderBoard();
+                        return; // End game
+                    }
+
+                    // Deselect piece and clear highlights
+                    selectedPiece.classList.remove('border-4', 'border-yellow-400');
+                    selectedPiece = null;
+                    selectedPieceCoords = null;
+                    document.querySelectorAll('.highlight-move').forEach(square => {
+                        square.classList.remove('highlight-move');
+                    });
+                    
+                    // Switch turn
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    gameMessage.textContent = "Piece moved! Now it's the other player's turn.";
+                    renderBoard(); // Re-render the board to show the new position
+                } else {
+                    gameMessage.textContent = "Invalid move. Please select a highlighted square.";
+                }
+            } else {
+                gameMessage.textContent = "Select a piece first!";
+            }
+        }
+
+        // Updates the display for current player and messages
+        function updateGameInfo() {
+            currentPlayerDisplay.textContent = `Player ${currentPlayer}`;
+            currentPlayerDisplay.classList.remove('text-red-500', 'text-blue-500');
+            if (currentPlayer === 1) {
+                currentPlayerDisplay.classList.add('text-red-500');
+            } else {
+                currentPlayerDisplay.classList.add('text-blue-500');
+            }
+        }
+
+        // Initial render when the page loads
+        document.addEventListener('DOMContentLoaded', renderBoard);
     </script>
 </body>
 </html>
