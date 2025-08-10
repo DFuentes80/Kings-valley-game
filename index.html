@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>King's Valley</title>
+    <title>King's Valley - Multiplayer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Light blue-gray background */
+            background-color: #f0f4f8;
             display: flex;
-            flex-direction: column; /* Allow vertical stacking */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -22,34 +22,34 @@
 
         .game-container {
             background-color: #ffffff;
-            border-radius: 1.5rem; /* More rounded corners */
+            border-radius: 1.5rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            padding: 2.5rem; /* Increased padding */
+            padding: 2.5rem;
             text-align: center;
-            max-width: 90%; /* Responsive width */
-            width: 500px; /* Max width for larger screens */
-            margin-bottom: 20px; /* Space below game container */
+            max-width: 90%;
+            width: 500px;
+            margin-bottom: 20px;
         }
 
         .game-title {
-            font-size: 2.5rem; /* Larger title */
+            font-size: 2.5rem;
             font-weight: 700;
-            color: #2c3e50; /* Darker title color */
+            color: #2c3e50;
             margin-bottom: 1.5rem;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
         }
 
         .board {
             display: grid;
-            grid-template-columns: repeat(5, 1fr); /* 5x5 board */
+            grid-template-columns: repeat(5, 1fr);
             grid-template-rows: repeat(5, 1fr);
             width: 100%;
-            max-width: 400px; /* Fixed size for the board itself */
+            max-width: 400px;
             height: 400px;
-            margin: 0 auto 2rem auto; /* Center board and add margin below */
-            border: 6px solid #8e44ad; /* Purple border */
-            border-radius: 0.75rem; /* Rounded board corners */
-            overflow: hidden; /* Ensures pieces don't overflow rounded corners */
+            margin: 0 auto 2rem auto;
+            border: 6px solid #8e44ad;
+            border-radius: 0.75rem;
+            overflow: hidden;
         }
 
         .square {
@@ -62,20 +62,19 @@
             font-weight: bold;
             color: #34495e;
             box-sizing: border-box;
-            border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle grid lines */
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .square:nth-child(odd) {
-            background-color: #ecf0f1; /* Light gray */
+            background-color: #ecf0f1;
         }
 
         .square:nth-child(even) {
-            background-color: #bdc3c7; /* Slightly darker gray */
+            background-color: #bdc3c7;
         }
 
-        /* Center square - King's Valley */
         .square[data-row="2"][data-col="2"] {
-            background-color: #f39c12; /* Orange for the King's Valley */
+            background-color: #f39c12;
             color: #ffffff;
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
             position: relative;
@@ -84,7 +83,7 @@
         .piece {
             width: 80%;
             height: 80%;
-            border-radius: 50%; /* Circular pieces */
+            border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -102,32 +101,36 @@
         }
 
         .player-1-color {
-            background-color: #e74c3c; /* Red */
+            background-color: #e74c3c;
         }
 
         .player-2-color {
-            background-color: #3498db; /* Blue */
+            background-color: #3498db;
         }
 
         .player-1-color.king {
-            background-color: #c0392b; /* Darker Red for King */
-            border: 3px solid #f1c40f; /* Gold border for King */
+            background-color: #c0392b;
+            border: 3px solid #f1c40f;
             font-size: 1.5rem;
         }
 
         .player-2-color.king {
-            background-color: #2980b9; /* Darker Blue for King */
-            border: 3px solid #f1c40f; /* Gold border for King */
+            background-color: #2980b9;
+            border: 3px solid #f1c40f;
             font-size: 1.5rem;
         }
 
         .highlight-move {
-            background-color: rgba(46, 204, 113, 0.5); /* Green highlight for valid moves */
+            background-color: rgba(46, 204, 113, 0.5);
             cursor: pointer;
             border: 2px dashed #27ae60;
         }
 
-        /* Responsive adjustments */
+        .selected {
+            border: 4px solid #f1c40f !important;
+            box-shadow: 0 0 15px #f1c40f;
+        }
+
         @media (max-width: 600px) {
             .game-container {
                 padding: 1.5rem;
@@ -153,38 +156,178 @@
 </head>
 <body>
     <div class="game-container">
-        <h1 class="game-title">King's Valley</h1>
-        <div id="gameBoard" class="board">
-            <!-- Board squares will be generated here by JavaScript -->
+        <h1 class="game-title">King's Valley - Multiplayer</h1>
+        <div id="gameLobby" class="mb-4">
+            <h2 class="text-xl font-bold mb-2">Game Lobby</h2>
+            <div class="flex flex-col sm:flex-row gap-2 justify-center">
+                <button id="newGameBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition">New Game</button>
+                <input type="text" id="gameIdInput" placeholder="Enter Game ID to Join" class="border p-2 rounded-lg text-center">
+                <button id="joinGameBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">Join Game</button>
+            </div>
+             <p class="mt-2 text-sm text-gray-600">Your User ID: <span id="userId" class="font-mono"></span></p>
         </div>
-        <div class="text-lg font-semibold text-gray-700 mt-4">
-            <p>Current Player: <span id="currentPlayerDisplay" class="text-red-500">Player 1</span></p>
-            <p>Message: <span id="gameMessage" class="text-gray-600">Welcome to King's Valley!</span></p>
+
+        <div id="gameArea" class="hidden">
+            <p class="text-md font-semibold text-gray-700 mb-2">Game ID: <span id="gameIdDisplay" class="font-mono bg-gray-200 px-2 py-1 rounded"></span></p>
+            <div id="gameBoard" class="board">
+                <!-- Board squares will be generated here by JavaScript -->
+            </div>
+            <div class="text-lg font-semibold text-gray-700 mt-4">
+                <p>Current Player: <span id="currentPlayerDisplay" class="font-bold"></span></p>
+                <p>You are: <span id="playerRoleDisplay" class="font-bold"></span></p>
+                <p>Message: <span id="gameMessage" class="text-gray-600"></span></p>
+            </div>
         </div>
     </div>
 
-    <script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        // It's recommended to use the latest version of the SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // IMPORTANT: Replace with your actual Firebase project configuration
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // DOM Elements
         const boardElement = document.getElementById('gameBoard');
         const currentPlayerDisplay = document.getElementById('currentPlayerDisplay');
         const gameMessage = document.getElementById('gameMessage');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const joinGameBtn = document.getElementById('joinGameBtn');
+        const gameIdInput = document.getElementById('gameIdInput');
+        const gameLobby = document.getElementById('gameLobby');
+        const gameArea = document.getElementById('gameArea');
+        const gameIdDisplay = document.getElementById('gameIdDisplay');
+        const playerRoleDisplay = document.getElementById('playerRoleDisplay');
+        const userIdSpan = document.getElementById('userId');
 
-        // Represents the 5x5 game board
-        // 0: empty, 1: Player 1 Soldier, 2: Player 2 Soldier, 1K: Player 1 King, 2K: Player 2 King
-        let board = [
-            [2, 2, '2K', 2, 2],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0], // Center square (2,2) is the King's Valley
-            [0, 0, 0, 0, 0],
-            [1, 1, '1K', 1, 1]
-        ];
+        // Game State Variables
+        let board = [];
+        let currentPlayer = 1;
+        let selectedPiece = null;
+        let selectedPieceCoords = null;
+        let currentGameId = null;
+        let localPlayerId = null;
+        let playerRole = null; // 1 or 2
+        let unsubscribeGame = null; // To stop listening to game updates
 
-        let currentPlayer = 1; // 1 for Player 1, 2 for Player 2
-        let selectedPiece = null; // DOM element reference
-        let selectedPieceCoords = null; // [row, col]
+        // --- Authentication ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                localPlayerId = user.uid;
+                userIdSpan.textContent = localPlayerId;
+                console.log("Authenticated anonymously with UID:", localPlayerId);
+            } else {
+                signInAnonymously(auth).catch(error => {
+                    console.error("Anonymous sign-in failed:", error);
+                    gameMessage.textContent = "Authentication failed. Please refresh.";
+                });
+            }
+        });
 
-        // Function to render the board based on the 'board' array
+
+        // --- Game Logic ---
+
+        function getInitialBoard() {
+            return [
+                [2, 2, '2K', 2, 2],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [1, 1, '1K', 1, 1]
+            ];
+        }
+
+        async function createNewGame() {
+            if (!localPlayerId) {
+                gameMessage.textContent = "Please wait for authentication.";
+                return;
+            }
+            try {
+                const gamesCollection = collection(db, "games");
+                const gameDocRef = await addDoc(gamesCollection, {
+                    board: getInitialBoard(),
+                    currentPlayer: 1,
+                    players: { [localPlayerId]: 1 }, // Player 1
+                    winner: null,
+                    createdAt: new Date()
+                });
+                joinGame(gameDocRef.id);
+            } catch (error) {
+                console.error("Error creating new game:", error);
+                gameMessage.textContent = "Failed to create a new game.";
+            }
+        }
+
+        async function joinGame(gameId) {
+            if (!localPlayerId) {
+                gameMessage.textContent = "Please wait for authentication.";
+                return;
+            }
+            if (!gameId) {
+                gameMessage.textContent = "Please enter a Game ID.";
+                return;
+            }
+
+            const gameDocRef = doc(db, "games", gameId);
+            const gameDocSnap = await getDoc(gameDocRef);
+
+            if (gameDocSnap.exists()) {
+                const gameData = gameDocSnap.data();
+
+                // If already in the game, just continue
+                if (gameData.players[localPlayerId]) {
+                    playerRole = gameData.players[localPlayerId];
+                } else { // Attempt to join as Player 2
+                    if (Object.keys(gameData.players).length < 2) {
+                        playerRole = 2;
+                        const updatedPlayers = { ...gameData.players, [localPlayerId]: 2 };
+                        await setDoc(gameDocRef, { players: updatedPlayers }, { merge: true });
+                    } else {
+                        gameMessage.textContent = "This game is full.";
+                        return;
+                    }
+                }
+
+                currentGameId = gameId;
+                gameIdDisplay.textContent = currentGameId;
+                playerRoleDisplay.textContent = `Player ${playerRole} (${playerRole === 1 ? 'Red' : 'Blue'})`;
+
+                gameLobby.classList.add('hidden');
+                gameArea.classList.remove('hidden');
+
+                // Unsubscribe from any previous game
+                if (unsubscribeGame) {
+                    unsubscribeGame();
+                }
+
+                // Listen for real-time updates
+                unsubscribeGame = onSnapshot(gameDocRef, (doc) => {
+                    console.log("Game data updated!");
+                    const updatedData = doc.data();
+                    board = updatedData.board;
+                    currentPlayer = updatedData.currentPlayer;
+                    renderBoard();
+                    if (updatedData.winner) {
+                        gameMessage.textContent = `Player ${updatedData.winner} wins! The King reached the King's Valley!`;
+                        // Optionally disable further moves
+                    }
+                });
+
+            } else {
+                gameMessage.textContent = "Game not found.";
+            }
+        }
+
         function renderBoard() {
-            boardElement.innerHTML = ''; // Clear existing board
+            boardElement.innerHTML = '';
             for (let row = 0; row < 5; row++) {
                 for (let col = 0; col < 5; col++) {
                     const square = document.createElement('div');
@@ -199,7 +342,6 @@
                         piece.dataset.row = row;
                         piece.dataset.col = col;
 
-                        // Use player-color classes
                         if (pieceType === 1 || pieceType === '1K') {
                             piece.classList.add('player-1-color');
                             piece.textContent = (pieceType === 1) ? 'S' : 'K';
@@ -210,30 +352,26 @@
                         if (pieceType === '1K' || pieceType === '2K') {
                             piece.classList.add('king');
                         }
-                        
+
                         piece.addEventListener('click', handlePieceClick);
                         square.appendChild(piece);
                     }
-                    square.addEventListener('click', handleSquareClick); // Add click listener to squares for movement
+                    square.addEventListener('click', handleSquareClick);
                     boardElement.appendChild(square);
                 }
             }
             updateGameInfo();
         }
 
-        // Helper function to check if coordinates are within board bounds
         function isInBounds(row, col) {
             return row >= 0 && row < 5 && col >= 0 && col < 5;
         }
 
-        // Helper function to check if a square is occupied
         function isOccupied(row, col) {
             return board[row][col] !== 0;
         }
 
-        // Function to determine if a move is valid according to King's Valley rules
         function isValidMove(startRow, startCol, targetRow, targetCol) {
-            // 1. Target must be empty and within bounds
             if (!isInBounds(targetRow, targetCol) || isOccupied(targetRow, targetCol)) {
                 return false;
             }
@@ -241,25 +379,21 @@
             const pieceType = board[startRow][startCol];
             const isKing = (pieceType === '1K' || pieceType === '2K');
 
-            // 2. Calculate direction
             const dRow = targetRow - startRow;
             const dCol = targetCol - startCol;
 
             let rowDir = 0;
             let colDir = 0;
 
-            if (dRow === 0 && dCol !== 0) { // Horizontal
-                colDir = dCol > 0 ? 1 : -1;
-            } else if (dCol === 0 && dRow !== 0) { // Vertical
-                rowDir = dRow > 0 ? 1 : -1;
-            } else if (Math.abs(dRow) === Math.abs(dCol) && dRow !== 0) { // Diagonal
+            if (dRow === 0 && dCol !== 0) { colDir = dCol > 0 ? 1 : -1; }
+            else if (dCol === 0 && dRow !== 0) { rowDir = dRow > 0 ? 1 : -1; }
+            else if (Math.abs(dRow) === Math.abs(dCol) && dRow !== 0) {
                 rowDir = dRow > 0 ? 1 : -1;
                 colDir = dCol > 0 ? 1 : -1;
             } else {
-                return false; // Not horizontal, vertical, or diagonal
+                return false;
             }
 
-            // 3. Simulate the slide to find the *actual* stopping point
             let currentRow = startRow + rowDir;
             let currentCol = startCol + colDir;
             let actualStopRow = startRow;
@@ -272,23 +406,18 @@
                 currentCol += colDir;
             }
 
-            // The piece must stop at the actualStopRow/Col
-            // So, the targetRow/Col must be equal to actualStopRow/Col
             if (targetRow !== actualStopRow || targetCol !== actualStopCol) {
-                return false; // Piece stopped mid-slide or went past an obstacle/edge
+                return false;
             }
 
-            // Special rule: Soldier cannot stop on the King's Valley (2,2)
             if (targetRow === 2 && targetCol === 2 && !isKing) {
-                return false; // Soldier cannot stop on King's Valley
+                return false;
             }
 
-            return true; // Valid move
+            return true;
         }
 
-        // Function to find and highlight all valid moves for the selected piece
         function highlightValidMoves() {
-            // Clear existing highlights
             document.querySelectorAll('.highlight-move').forEach(square => {
                 square.classList.remove('highlight-move');
             });
@@ -296,8 +425,6 @@
             if (!selectedPieceCoords) return;
 
             const [startRow, startCol] = selectedPieceCoords;
-
-            // Check all possible target squares
             for (let row = 0; row < 5; row++) {
                 for (let col = 0; col < 5; col++) {
                     if (isValidMove(startRow, startCol, row, col)) {
@@ -310,90 +437,80 @@
             }
         }
 
-        // Handles clicking on a piece (to select it)
         function handlePieceClick(event) {
+            event.stopPropagation(); // Prevent square click from firing immediately
+            if (currentPlayer !== playerRole) {
+                gameMessage.textContent = "It's not your turn!";
+                return;
+            }
+
             const clickedPiece = event.target;
             const row = parseInt(clickedPiece.dataset.row);
             const col = parseInt(clickedPiece.dataset.col);
             const pieceType = board[row][col];
 
-            // Check if it's the current player's piece
             if ((currentPlayer === 1 && (pieceType === 1 || pieceType === '1K')) ||
                 (currentPlayer === 2 && (pieceType === 2 || pieceType === '2K'))) {
 
                 if (selectedPiece) {
-                    // Deselect previously selected piece
-                    selectedPiece.classList.remove('border-4', 'border-yellow-400');
+                    selectedPiece.classList.remove('selected');
                 }
+
                 selectedPiece = clickedPiece;
                 selectedPieceCoords = [row, col];
-                selectedPiece.classList.add('border-4', 'border-yellow-400'); // Highlight selected piece
-                gameMessage.textContent = `Piece selected at (${row}, ${col}). Now click a highlighted square to move.`;
-                highlightValidMoves(); // Highlight valid moves for the selected piece
+                selectedPiece.classList.add('selected');
+                gameMessage.textContent = `Piece selected. Click a highlighted square to move.`;
+                highlightValidMoves();
             } else {
-                gameMessage.textContent = "That's not your piece, or it's not your turn!";
-                // Clear any existing selection and highlights if clicking an invalid piece
-                if (selectedPiece) {
-                    selectedPiece.classList.remove('border-4', 'border-yellow-400');
-                    selectedPiece = null;
-                    selectedPieceCoords = null;
-                }
-                document.querySelectorAll('.highlight-move').forEach(square => {
-                    square.classList.remove('highlight-move');
-                });
+                gameMessage.textContent = "That's not your piece!";
             }
         }
 
-        // Handles clicking on a square (to move to it)
-        function handleSquareClick(event) {
-            const clickedSquare = event.currentTarget; // Use currentTarget to get the square div
+        async function handleSquareClick(event) {
+            if (currentPlayer !== playerRole) {
+                gameMessage.textContent = "It's not your turn!";
+                return;
+            }
+
+            const clickedSquare = event.currentTarget;
             const targetRow = parseInt(clickedSquare.dataset.row);
             const targetCol = parseInt(clickedSquare.dataset.col);
 
             if (selectedPiece && selectedPieceCoords) {
                 const [startRow, startCol] = selectedPieceCoords;
 
-                // Validate the move using the King's Valley rules
                 if (isValidMove(startRow, startCol, targetRow, targetCol)) {
-                    // Perform the move on the local board
-                    board[targetRow][targetCol] = board[startRow][startCol];
-                    board[startRow][startCol] = 0; // Clear the old position
+                    const newBoard = JSON.parse(JSON.stringify(board)); // Deep copy
+                    newBoard[targetRow][targetCol] = newBoard[startRow][startCol];
+                    newBoard[startRow][startCol] = 0;
 
-                    // Check for win condition: King reaches the King's Valley (2,2)
-                    const pieceMoved = board[targetRow][targetCol];
+                    let winner = null;
+                    const pieceMoved = newBoard[targetRow][targetCol];
                     if ((pieceMoved === '1K' || pieceMoved === '2K') && targetRow === 2 && targetCol === 2) {
-                        gameMessage.textContent = `Player ${currentPlayer} wins! The King reached the King's Valley!`;
-                        // Game ends here, no turn switch
-                        selectedPiece = null;
-                        selectedPieceCoords = null;
-                        document.querySelectorAll('.highlight-move').forEach(square => {
-                            square.classList.remove('highlight-move');
-                        });
-                        renderBoard();
-                        return; // End game
+                        winner = currentPlayer;
                     }
 
-                    // Deselect piece and clear highlights
-                    selectedPiece.classList.remove('border-4', 'border-yellow-400');
+                    const nextPlayer = currentPlayer === 1 ? 2 : 1;
+
+                    // Update Firestore
+                    const gameDocRef = doc(db, "games", currentGameId);
+                    await setDoc(gameDocRef, {
+                        board: newBoard,
+                        currentPlayer: winner ? currentPlayer : nextPlayer,
+                        winner: winner
+                    }, { merge: true });
+
+                    // Clear local selection after move
                     selectedPiece = null;
                     selectedPieceCoords = null;
-                    document.querySelectorAll('.highlight-move').forEach(square => {
-                        square.classList.remove('highlight-move');
-                    });
-                    
-                    // Switch turn
-                    currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    gameMessage.textContent = "Piece moved! Now it's the other player's turn.";
-                    renderBoard(); // Re-render the board to show the new position
+                    // The onSnapshot listener will handle re-rendering
+
                 } else {
                     gameMessage.textContent = "Invalid move. Please select a highlighted square.";
                 }
-            } else {
-                gameMessage.textContent = "Select a piece first!";
             }
         }
 
-        // Updates the display for current player and messages
         function updateGameInfo() {
             currentPlayerDisplay.textContent = `Player ${currentPlayer}`;
             currentPlayerDisplay.classList.remove('text-red-500', 'text-blue-500');
@@ -404,8 +521,10 @@
             }
         }
 
-        // Initial render when the page loads
-        document.addEventListener('DOMContentLoaded', renderBoard);
+        // --- Event Listeners ---
+        newGameBtn.addEventListener('click', createNewGame);
+        joinGameBtn.addEventListener('click', () => joinGame(gameIdInput.value.trim()));
+
     </script>
 </body>
 </html>
