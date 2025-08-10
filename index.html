@@ -152,7 +152,21 @@
     </style>
 </head>
 <body>
-    <div class="game-container">
+    <div id="lobbyContainer" class="game-container">
+        <h1 class="game-title">King's Valley Lobby</h1>
+        <div class="flex flex-col space-y-4">
+            <button id="createGameButton" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300">
+                Create New Game
+            </button>
+            <input type="text" id="gameIdInput" placeholder="Enter Game ID to Join" class="p-3 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <button id="joinGameButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300">
+                Join Game
+            </button>
+            <p id="lobbyMessage" class="text-sm text-gray-500"></p>
+        </div>
+    </div>
+
+    <div id="gameContainer" class="game-container hidden"> <!-- Added 'hidden' class initially -->
         <h1 class="game-title">King's Valley</h1>
         <div id="gameBoard" class="board">
             <!-- Board squares will be generated here by JavaScript -->
@@ -168,12 +182,10 @@
         // Using full CDN paths for direct browser imports (note the 'type="module"' on the script tag!)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-        // If you add Realtime Database later, you'd import it like this:
-        // import { getDatabase } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
+        // NEW: Import Realtime Database functions
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
         // Your web app's Firebase configuration
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
           apiKey: "AIzaSyA9G_JmOZnNCchThqK0hfiWmFz_Q26hd0E",
           authDomain: "king-s-valley.firebaseapp.com",
@@ -188,14 +200,28 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
+        // NEW: Initialize Realtime Database
+        const database = getDatabase(app);
 
-        // --- Your existing game JavaScript starts here ---
+        // --- NEW GLOBALS FOR MULTIPLAYER ---
+        let currentGameId = null;
+        let isPlayer1 = false; // To determine if this client is Player 1 or Player 2
+
+        // --- NEW UI ELEMENTS ---
+        const lobbyContainer = document.getElementById('lobbyContainer');
+        const gameContainer = document.getElementById('gameContainer');
+        const createGameButton = document.getElementById('createGameButton');
+        const gameIdInput = document.getElementById('gameIdInput');
+        const joinGameButton = document.getElementById('joinGameButton');
+        const lobbyMessage = document.getElementById('lobbyMessage');
+
+
+        // --- EXISTING GAME GLOBALS ---
         const boardElement = document.getElementById('gameBoard');
         const currentPlayerDisplay = document.getElementById('currentPlayerDisplay');
         const gameMessage = document.getElementById('gameMessage');
 
-        // Represents the 5x5 game board
-        // 0: empty, 1: Player 1 Soldier, 2: Player 2 Soldier, 1K: Player 1 King, 2K: Player 2 King
+        // Initial board state (this will eventually come from the database)
         let board = [
             [2, 2, '2K', 2, 2],
             [0, 0, 0, 0, 0],
@@ -203,12 +229,98 @@
             [0, 0, 0, 0, 0],
             [1, 1, '1K', 1, 1]
         ];
-
-        let currentPlayer = 1; // 1 for Player 1, 2 for Player 2
+        let currentPlayer = 1; // This will also be synchronized from the database
         let selectedPiece = null; // DOM element reference
         let selectedPieceCoords = null; // [row, col]
 
-        // Function to render the board based on the 'board' array
+
+        // --- NEW LOBBY LOGIC ---
+
+        createGameButton.addEventListener('click', async () => {
+            const newGameId = 'game_' + Math.random().toString(36).substring(2, 9); // Simple unique ID
+            const gameRef = ref(database, 'games/' + newGameId);
+
+            // Set initial game state in the database
+            await set(gameRef, {
+                board: [ // Initial board state
+                    [2, 2, '2K', 2, 2],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [1, 1, '1K', 1, 1]
+                ],
+                currentPlayer: 1,
+                player1Joined: true, // This client is Player 1
+                player2Joined: false,
+                status: 'waiting' // Game is waiting for another player
+            });
+
+            currentGameId = newGameId;
+            isPlayer1 = true;
+            lobbyMessage.textContent = `Game created! Share this ID: ${newGameId}`;
+            console.log("Game created with ID:", newGameId);
+            startGameListener(newGameId); // Start listening for changes to THIS game
+            showGameScreen();
+        });
+
+        joinGameButton.addEventListener('click', async () => {
+            const gameIdToJoin = gameIdInput.value.trim();
+            if (gameIdToJoin) {
+                const gameRef = ref(database, 'games/' + gameIdToJoin);
+                // Use onValue with { onlyOnce: true } to check initial state
+                onValue(gameRef, async (snapshot) => {
+                    const gameData = snapshot.val();
+                    if (gameData && !gameData.player2Joined) { // Check if game exists and has space
+                        await set(ref(database, 'games/' + gameIdToJoin + '/player2Joined'), true); // Mark Player 2 joined
+                        await set(ref(database, 'games/' + gameIdToJoin + '/status'), 'playing'); // Set status to playing
+                        currentGameId = gameIdToJoin;
+                        isPlayer1 = false; // This client is Player 2
+                        lobbyMessage.textContent = `Joined game: ${gameIdToJoin}!`;
+                        console.log("Joined game:", gameIdToJoin);
+                        startGameListener(gameIdToJoin);
+                        showGameScreen();
+                    } else if (gameData && gameData.player2Joined) {
+                        lobbyMessage.textContent = `Game ${gameIdToJoin} is already full or doesn't exist.`;
+                    } else {
+                        lobbyMessage.textContent = `Game ${gameIdToJoin} not found.`;
+                    }
+                }, { onlyOnce: true }); // We only want to check the initial state once
+            } else {
+                lobbyMessage.textContent = "Please enter a Game ID.";
+            }
+        });
+
+        function showGameScreen() {
+            lobbyContainer.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            gameMessage.textContent = `Welcome! You are ${isPlayer1 ? 'Player 1 (Red)' : 'Player 2 (Blue)'}.`;
+            updateGameInfo(); // Initial update of player info
+            renderBoard(); // Initial render based on retrieved board
+        }
+
+        // --- NEW: Function to listen for game changes from the database ---
+        function startGameListener(gameId) {
+            const gameRef = ref(database, 'games/' + gameId);
+            onValue(gameRef, (snapshot) => {
+                const gameData = snapshot.val();
+                if (gameData) {
+                    // Update local state with data from database
+                    board = gameData.board;
+                    currentPlayer = gameData.currentPlayer;
+                    renderBoard(); // Re-render the board with the new state
+                    updateGameInfo(); // Update current player display
+                    if (gameData.status === 'playing' && gameMessage.textContent.includes('Welcome')) {
+                        gameMessage.textContent = "Game started! Make your move!";
+                    } else if (gameData.status === 'finished') {
+                         gameMessage.textContent = `Game Over! Player ${gameData.winner} won!`;
+                    }
+                }
+            });
+        }
+
+        // --- MODIFIED GAME LOGIC (where moves update the database) ---
+
+        // Function to render the board based on the 'board' array (no changes needed here initially)
         function renderBoard() {
             boardElement.innerHTML = ''; // Clear existing board
             for (let row = 0; row < 5; row++) {
@@ -247,17 +359,17 @@
             updateGameInfo();
         }
 
-        // Helper function to check if coordinates are within board bounds
+        // Helper function to check if coordinates are within board bounds (no changes)
         function isInBounds(row, col) {
             return row >= 0 && row < 5 && col >= 0 && col < 5;
         }
 
-        // Helper function to check if a square is occupied
+        // Helper function to check if a square is occupied (no changes)
         function isOccupied(row, col) {
             return board[row][col] !== 0;
         }
 
-        // Function to determine if a move is valid according to King's Valley rules
+        // Function to determine if a move is valid according to King's Valley rules (no changes)
         function isValidMove(startRow, startCol, targetRow, targetCol) {
             // 1. Target must be empty and within bounds
             if (!isInBounds(targetRow, targetCol) || isOccupied(targetRow, targetCol)) {
@@ -312,7 +424,7 @@
             return true; // Valid move
         }
 
-        // Function to find and highlight all valid moves for the selected piece
+        // Function to find and highlight all valid moves for the selected piece (no changes)
         function highlightValidMoves() {
             // Clear existing highlights
             document.querySelectorAll('.highlight-move').forEach(square => {
@@ -343,22 +455,23 @@
             const col = parseInt(clickedPiece.dataset.col);
             const pieceType = board[row][col];
 
-            // Check if it's the current player's piece
-            if ((currentPlayer === 1 && (pieceType === 1 || pieceType === '1K')) ||
-                (currentPlayer === 2 && (pieceType === 2 || pieceType === '2K'))) {
+            // NEW: Only allow current player to select their pieces and it must be their turn
+            if ( (isPlayer1 && currentPlayer === 1 && (pieceType === 1 || pieceType === '1K')) ||
+                 (!isPlayer1 && currentPlayer === 2 && (pieceType === 2 || pieceType === '2K')) ) {
 
                 if (selectedPiece) {
-                    // Deselect previously selected piece
                     selectedPiece.classList.remove('border-4', 'border-yellow-400');
                 }
                 selectedPiece = clickedPiece;
                 selectedPieceCoords = [row, col];
-                selectedPiece.classList.add('border-4', 'border-yellow-400'); // Highlight selected piece
+                selectedPiece.classList.add('border-4', 'border-yellow-400');
                 gameMessage.textContent = `Piece selected at (${row}, ${col}). Now click a highlighted square to move.`;
-                highlightValidMoves(); // Highlight valid moves for the selected piece
-            } else {
-                gameMessage.textContent = "That's not your piece, or it's not your turn!";
-                // Clear any existing selection and highlights if clicking an invalid piece
+                highlightValidMoves();
+            } else if ( (isPlayer1 && currentPlayer !== 1) || (!isPlayer1 && currentPlayer !== 2) ){
+                gameMessage.textContent = "It's not your turn!";
+            }
+            else {
+                gameMessage.textContent = "That's not your piece!";
                 if (selectedPiece) {
                     selectedPiece.classList.remove('border-4', 'border-yellow-400');
                     selectedPiece = null;
@@ -371,46 +484,62 @@
         }
 
         // Handles clicking on a square (to move to it)
-        function handleSquareClick(event) {
-            const clickedSquare = event.currentTarget; // Use currentTarget to get the square div
+        async function handleSquareClick(event) { // Make this function async
+            const clickedSquare = event.currentTarget;
             const targetRow = parseInt(clickedSquare.dataset.row);
             const targetCol = parseInt(clickedSquare.dataset.col);
 
             if (selectedPiece && selectedPieceCoords) {
                 const [startRow, startCol] = selectedPieceCoords;
 
-                // Validate the move using the King's Valley rules
-                if (isValidMove(startRow, startCol, targetRow, targetCol)) {
-                    // Perform the move on the local board
-                    board[targetRow][targetCol] = board[startRow][startCol];
-                    board[startRow][startCol] = 0; // Clear the old position
+                // NEW: Ensure it's the current player's turn based on client's identity
+                const playerTurn = isPlayer1 ? 1 : 2;
+                if (currentPlayer !== playerTurn) {
+                    gameMessage.textContent = "It's not your turn!";
+                    return;
+                }
 
-                    // Check for win condition: King reaches the King's Valley (2,2)
-                    const pieceMoved = board[targetRow][targetCol];
+                if (isValidMove(startRow, startCol, targetRow, targetCol)) {
+                    // Perform the move on a *temporary* local board first
+                    let newBoard = JSON.parse(JSON.stringify(board)); // Deep copy
+                    newBoard[targetRow][targetCol] = newBoard[startRow][startCol];
+                    newBoard[startRow][startCol] = 0;
+
+                    const pieceMoved = newBoard[targetRow][targetCol];
+                    let nextPlayer = currentPlayer === 1 ? 2 : 1;
+                    let newStatus = 'playing';
+                    let winner = null;
+
                     if ((pieceMoved === '1K' || pieceMoved === '2K') && targetRow === 2 && targetCol === 2) {
                         gameMessage.textContent = `Player ${currentPlayer} wins! The King reached the King's Valley!`;
-                        // Game ends here, no turn switch
-                        selectedPiece = null;
-                        selectedPieceCoords = null;
-                        document.querySelectorAll('.highlight-move').forEach(square => {
-                            square.classList.remove('highlight-move');
-                        });
-                        renderBoard();
-                        return; // End game
+                        newStatus = 'finished';
+                        winner = currentPlayer;
+                        // No turn switch if game is over
                     }
 
-                    // Deselect piece and clear highlights
+                    // *** NEW: Update the Realtime Database with the new game state ***
+                    const gameRef = ref(database, 'games/' + currentGameId);
+                    await set(gameRef, {
+                        board: newBoard,
+                        currentPlayer: newStatus === 'finished' ? currentPlayer : nextPlayer, // Keep current player if game finished
+                        player1Joined: true, // Assume both players are still in the game
+                        player2Joined: true,
+                        status: newStatus,
+                        winner: winner // Add winner field if game finished
+                    });
+                    // The `onValue` listener will automatically update the local `board` and `currentPlayer`
+                    // and re-render the board for *both* players.
+
+                    // Deselect piece and clear highlights locally immediately for smoother UX
                     selectedPiece.classList.remove('border-4', 'border-yellow-400');
                     selectedPiece = null;
                     selectedPieceCoords = null;
                     document.querySelectorAll('.highlight-move').forEach(square => {
                         square.classList.remove('highlight-move');
                     });
-                    
-                    // Switch turn
-                    currentPlayer = currentPlayer === 1 ? 2 : 1;
-                    gameMessage.textContent = "Piece moved! Now it's the other player's turn.";
-                    renderBoard(); // Re-render the board to show the new position
+
+                    // Don't switch current player locally, let the database update drive it
+                    // The gameMessage will be updated by the onValue listener
                 } else {
                     gameMessage.textContent = "Invalid move. Please select a highlighted square.";
                 }
@@ -419,7 +548,7 @@
             }
         }
 
-        // Updates the display for current player and messages
+        // Updates the display for current player and messages (no changes needed)
         function updateGameInfo() {
             currentPlayerDisplay.textContent = `Player ${currentPlayer}`;
             currentPlayerDisplay.classList.remove('text-red-500', 'text-blue-500');
@@ -430,8 +559,8 @@
             }
         }
 
-        // Initial render when the page loads
-        document.addEventListener('DOMContentLoaded', renderBoard);
+        // Initial render (this will now happen after creating/joining a game)
+        // document.addEventListener('DOMContentLoaded', renderBoard); // Remove this, as showGameScreen() calls renderBoard()
     </script>
 </body>
 </html>
