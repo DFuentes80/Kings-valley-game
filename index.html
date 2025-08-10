@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-M">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>King's Valley</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -366,7 +366,7 @@
             lobbyMessage.textContent = `Game created! Share the link above with a friend.`;
             console.log("Game created with ID:", newGameId, "Share URL:", shareUrl);
             startGameListener(newGameId); // Start listening for changes to THIS game
-            showGameScreen();
+            // Removed: showGameScreen(); -> Game screen will appear when status is 'playing'
         });
 
         joinGameButton.addEventListener('click', async () => {
@@ -391,7 +391,7 @@
                         lobbyMessage.textContent = `Joined game: ${gameIdToJoin}!`;
                         console.log("Joined game:", gameIdToJoin);
                         startGameListener(gameIdToJoin);
-                        showGameScreen();
+                        // Removed: showGameScreen(); -> Game screen will appear when status is 'playing'
                     } else if (gameData && gameData.player2Name) {
                         lobbyMessage.textContent = `Game ${gameIdToJoin} is already full or doesn't exist.`;
                     } else {
@@ -406,15 +406,16 @@
         let player1Name = "Player 1"; // Global to hold current player names from DB
         let player2Name = "Player 2"; // Global to hold current player names from DB
 
+        // The showGameScreen function now only handles the UI switch
         function showGameScreen() {
             lobbyContainer.classList.add('hidden');
             gameContainer.classList.remove('hidden');
-            gameMessage.textContent = `Welcome! Waiting for opponent...`; // Initial message
-            updateGameInfo(); // Initial update of player info
-            renderBoard(); // Initial render based on retrieved board
+            // gameMessage.textContent will be set by the listener based on status
+            updateGameInfo();
+            renderBoard();
         }
 
-        // --- NEW: Function to listen for game changes from the database ---
+        // --- MODIFIED: Function to listen for game changes from the database ---
         function startGameListener(gameId) {
             const gameRef = ref(database, 'games/' + gameId);
             onValue(gameRef, (snapshot) => {
@@ -426,25 +427,29 @@
                     player1Name = gameData.player1Name || "Player 1"; // NEW: Update names
                     player2Name = gameData.player2Name || "Player 2"; // NEW: Update names
 
-                    renderBoard(); // Re-render the board with the new state
-                    updateGameInfo(); // Update current player display
-
-                    // Handle game status messages
-                    if (gameData.status === 'waiting') {
-                        gameMessage.textContent = `Waiting for opponent to join...`;
-                        playAgainButton.classList.add('hidden'); // Hide play again button
-                    } else if (gameData.status === 'playing') {
+                    // Only show game screen if status is 'playing'
+                    if (gameData.status === 'playing') {
+                        showGameScreen(); // Trigger the UI switch to game
                         gameMessage.textContent = "Game started! Make your move!";
-                        playAgainButton.classList.add('hidden'); // Hide play again button
+                        playAgainButton.classList.add('hidden'); // Ensure hidden during play
+                    } else if (gameData.status === 'waiting') {
+                        // Keep in lobby, update message for Player 1
+                        lobbyMessage.textContent = `Game created! Share the link with ${player1Name || 'your friend'}. Waiting for Player 2...`;
+                        sharableLinkDisplay.classList.remove('hidden');
+                        gameIdDisplay.classList.remove('hidden');
+                        gameIdDisplay.textContent = `Game ID: ${gameId}`;
                     } else if (gameData.status === 'finished') {
                          gameMessage.textContent = `Game Over! ${gameData.winner === 1 ? player1Name : player2Name} won!`;
                          playAgainButton.classList.remove('hidden'); // Show play again button
                     }
+
+                    renderBoard(); // Re-render the board with the new state
+                    updateGameInfo(); // Update current player display
                 }
             });
         }
 
-        // --- GAME LOGIC ---
+        // --- GAME LOGIC (no changes from previous complete code) ---
 
         // Function to render the board based on the 'board' array
         function renderBoard() {
