@@ -162,6 +162,11 @@
             <button id="joinGameButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300">
                 Join Game
             </button>
+            <!-- NEW: Element to display the sharable link -->
+            <p id="sharableLinkDisplay" class="text-gray-700 text-sm mt-2 hidden">
+                Share this link: <a id="gameLink" class="text-blue-500 hover:underline" href="#"></a>
+                <button id="copyLinkButton" class="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs px-2 py-1 rounded">Copy</button>
+            </p>
             <p id="lobbyMessage" class="text-sm text-gray-500"></p>
         </div>
     </div>
@@ -179,10 +184,8 @@
 
     <script type="module">
         // Import the functions you need from the SDKs you need
-        // Using full CDN paths for direct browser imports (note the 'type="module"' on the script tag!)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-        // NEW: Import Realtime Database functions
         import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
         // Your web app's Firebase configuration
@@ -200,7 +203,6 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
-        // NEW: Initialize Realtime Database
         const database = getDatabase(app);
 
         // --- NEW GLOBALS FOR MULTIPLAYER ---
@@ -214,6 +216,10 @@
         const gameIdInput = document.getElementById('gameIdInput');
         const joinGameButton = document.getElementById('joinGameButton');
         const lobbyMessage = document.getElementById('lobbyMessage');
+        // NEW: Sharable link elements
+        const sharableLinkDisplay = document.getElementById('sharableLinkDisplay');
+        const gameLink = document.getElementById('gameLink');
+        const copyLinkButton = document.getElementById('copyLinkButton');
 
 
         // --- EXISTING GAME GLOBALS ---
@@ -234,7 +240,35 @@
         let selectedPieceCoords = null; // [row, col]
 
 
-        // --- NEW LOBBY LOGIC ---
+        // --- NEW: Sharable Game ID updates ---
+        // Function to parse query parameters
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Check for gameId in URL on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialGameId = getQueryParam('gameId');
+            if (initialGameId) {
+                gameIdInput.value = initialGameId;
+                lobbyMessage.textContent = `Game ID found in URL. Click Join Game to start!`;
+            }
+        });
+
+        copyLinkButton.addEventListener('click', () => {
+            if (gameLink.href) {
+                navigator.clipboard.writeText(gameLink.href).then(() => {
+                    lobbyMessage.textContent = 'Link copied to clipboard!';
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    lobbyMessage.textContent = 'Failed to copy link. Please copy it manually.';
+                });
+            }
+        });
+
+
+        // --- LOBBY LOGIC ---
 
         createGameButton.addEventListener('click', async () => {
             const newGameId = 'game_' + Math.random().toString(36).substring(2, 9); // Simple unique ID
@@ -257,8 +291,13 @@
 
             currentGameId = newGameId;
             isPlayer1 = true;
-            lobbyMessage.textContent = `Game created! Share this ID: ${newGameId}`;
-            console.log("Game created with ID:", newGameId);
+            // NEW: Construct and display the sharable link
+            const shareUrl = window.location.origin + window.location.pathname + '?gameId=' + newGameId;
+            gameLink.href = shareUrl;
+            gameLink.textContent = shareUrl;
+            sharableLinkDisplay.classList.remove('hidden'); // Show the link display
+            lobbyMessage.textContent = `Game created! Share the link above with a friend.`;
+            console.log("Game created with ID:", newGameId, "Share URL:", shareUrl);
             startGameListener(newGameId); // Start listening for changes to THIS game
             showGameScreen();
         });
@@ -298,7 +337,7 @@
             renderBoard(); // Initial render based on retrieved board
         }
 
-        // --- NEW: Function to listen for game changes from the database ---
+        // --- Function to listen for game changes from the database ---
         function startGameListener(gameId) {
             const gameRef = ref(database, 'games/' + gameId);
             onValue(gameRef, (snapshot) => {
@@ -318,9 +357,9 @@
             });
         }
 
-        // --- MODIFIED GAME LOGIC (where moves update the database) ---
+        // --- GAME LOGIC ---
 
-        // Function to render the board based on the 'board' array (no changes needed here initially)
+        // Function to render the board based on the 'board' array
         function renderBoard() {
             boardElement.innerHTML = ''; // Clear existing board
             for (let row = 0; row < 5; row++) {
@@ -359,17 +398,17 @@
             updateGameInfo();
         }
 
-        // Helper function to check if coordinates are within board bounds (no changes)
+        // Helper function to check if coordinates are within board bounds
         function isInBounds(row, col) {
             return row >= 0 && row < 5 && col >= 0 && col < 5;
         }
 
-        // Helper function to check if a square is occupied (no changes)
+        // Helper function to check if a square is occupied
         function isOccupied(row, col) {
             return board[row][col] !== 0;
         }
 
-        // Function to determine if a move is valid according to King's Valley rules (no changes)
+        // Function to determine if a move is valid according to King's Valley rules
         function isValidMove(startRow, startCol, targetRow, targetCol) {
             // 1. Target must be empty and within bounds
             if (!isInBounds(targetRow, targetCol) || isOccupied(targetRow, targetCol)) {
@@ -424,7 +463,7 @@
             return true; // Valid move
         }
 
-        // Function to find and highlight all valid moves for the selected piece (no changes)
+        // Function to find and highlight all valid moves for the selected piece
         function highlightValidMoves() {
             // Clear existing highlights
             document.querySelectorAll('.highlight-move').forEach(square => {
@@ -455,7 +494,7 @@
             const col = parseInt(clickedPiece.dataset.col);
             const pieceType = board[row][col];
 
-            // NEW: Only allow current player to select their pieces and it must be their turn
+            // Only allow current player to select their pieces and it must be their turn
             if ( (isPlayer1 && currentPlayer === 1 && (pieceType === 1 || pieceType === '1K')) ||
                  (!isPlayer1 && currentPlayer === 2 && (pieceType === 2 || pieceType === '2K')) ) {
 
@@ -492,7 +531,7 @@
             if (selectedPiece && selectedPieceCoords) {
                 const [startRow, startCol] = selectedPieceCoords;
 
-                // NEW: Ensure it's the current player's turn based on client's identity
+                // Ensure it's the current player's turn based on client's identity
                 const playerTurn = isPlayer1 ? 1 : 2;
                 if (currentPlayer !== playerTurn) {
                     gameMessage.textContent = "It's not your turn!";
@@ -517,7 +556,7 @@
                         // No turn switch if game is over
                     }
 
-                    // *** NEW: Update the Realtime Database with the new game state ***
+                    // Update the Realtime Database with the new game state
                     const gameRef = ref(database, 'games/' + currentGameId);
                     await set(gameRef, {
                         board: newBoard,
@@ -548,7 +587,7 @@
             }
         }
 
-        // Updates the display for current player and messages (no changes needed)
+        // Updates the display for current player and messages
         function updateGameInfo() {
             currentPlayerDisplay.textContent = `Player ${currentPlayer}`;
             currentPlayerDisplay.classList.remove('text-red-500', 'text-blue-500');
@@ -558,9 +597,6 @@
                 currentPlayerDisplay.classList.add('text-blue-500');
             }
         }
-
-        // Initial render (this will now happen after creating/joining a game)
-        // document.addEventListener('DOMContentLoaded', renderBoard); // Remove this, as showGameScreen() calls renderBoard()
     </script>
 </body>
 </html>
