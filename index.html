@@ -155,6 +155,9 @@
     <div id="lobbyContainer" class="game-container">
         <h1 class="game-title">King's Valley Lobby</h1>
         <div class="flex flex-col space-y-4">
+            <!-- NEW: Nickname Input -->
+            <input type="text" id="nicknameInput" placeholder="Enter your nickname" class="p-3 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+
             <button id="createGameButton" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300">
                 Create New Game
             </button>
@@ -162,7 +165,9 @@
             <button id="joinGameButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300">
                 Join Game
             </button>
-            <!-- NEW: Element to display the sharable link -->
+            <!-- NEW: More visible Game ID display -->
+            <p id="gameIdDisplay" class="text-2xl font-bold text-green-700 hidden mt-4"></p>
+
             <p id="sharableLinkDisplay" class="text-gray-700 text-sm mt-2 hidden">
                 Share this link: <a id="gameLink" class="text-blue-500 hover:underline" href="#"></a>
                 <button id="copyLinkButton" class="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs px-2 py-1 rounded">Copy</button>
@@ -179,6 +184,10 @@
         <div class="text-lg font-semibold text-gray-700 mt-4">
             <p>Current Player: <span id="currentPlayerDisplay" class="text-red-500">Player 1</span></p>
             <p>Message: <span id="gameMessage" class="text-gray-600">Welcome to King's Valley!</span></p>
+            <!-- NEW: Play Again Button -->
+            <button id="playAgainButton" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-lg hidden transition duration-300">
+                Play Again
+            </button>
         </div>
     </div>
 
@@ -208,6 +217,7 @@
         // --- NEW GLOBALS FOR MULTIPLAYER ---
         let currentGameId = null;
         let isPlayer1 = false; // To determine if this client is Player 1 or Player 2
+        let playerNickname = "Guest"; // NEW: Default nickname
 
         // --- NEW UI ELEMENTS ---
         const lobbyContainer = document.getElementById('lobbyContainer');
@@ -216,10 +226,14 @@
         const gameIdInput = document.getElementById('gameIdInput');
         const joinGameButton = document.getElementById('joinGameButton');
         const lobbyMessage = document.getElementById('lobbyMessage');
-        // NEW: Sharable link elements
         const sharableLinkDisplay = document.getElementById('sharableLinkDisplay');
         const gameLink = document.getElementById('gameLink');
         const copyLinkButton = document.getElementById('copyLinkButton');
+        // NEW: Nickname input and Game ID display elements
+        const nicknameInput = document.getElementById('nicknameInput');
+        const gameIdDisplay = document.getElementById('gameIdDisplay');
+        // NEW: Play Again button
+        const playAgainButton = document.getElementById('playAgainButton');
 
 
         // --- EXISTING GAME GLOBALS ---
@@ -240,20 +254,39 @@
         let selectedPieceCoords = null; // [row, col]
 
 
-        // --- NEW: Sharable Game ID updates ---
+        // --- NEW/MODIFIED: Sharable Game ID & Nickname updates ---
         // Function to parse query parameters
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
         }
 
-        // Check for gameId in URL on page load
         document.addEventListener('DOMContentLoaded', () => {
+            // Check for nickname in local storage or prompt
+            const storedNickname = localStorage.getItem('king_s_valley_nickname');
+            if (storedNickname) {
+                playerNickname = storedNickname;
+                nicknameInput.value = storedNickname;
+            } else {
+                // You could prompt here or let them type it
+                nicknameInput.value = `Player${Math.floor(Math.random() * 1000)}`; // Suggest a random name
+            }
+
             const initialGameId = getQueryParam('gameId');
             if (initialGameId) {
                 gameIdInput.value = initialGameId;
-                lobbyMessage.textContent = `Game ID found in URL. Click Join Game to start!`;
+                lobbyMessage.textContent = `Game ID found in URL. Enter your nickname and click Join Game!`;
             }
+        });
+
+        // Save nickname when input changes
+        nicknameInput.addEventListener('change', () => {
+            playerNickname = nicknameInput.value.trim();
+            if (playerNickname === "") {
+                playerNickname = "Guest";
+                nicknameInput.value = playerNickname;
+            }
+            localStorage.setItem('king_s_valley_nickname', playerNickname);
         });
 
         copyLinkButton.addEventListener('click', () => {
@@ -267,10 +300,41 @@
             }
         });
 
+        // NEW: Play Again button listener
+        playAgainButton.addEventListener('click', async () => {
+            if (currentGameId && (isPlayer1 || currentPlayer === 1)) { // Only Player 1 or current winner can initiate
+                await set(ref(database, 'games/' + currentGameId), {
+                    board: [ // Reset board state
+                        [2, 2, '2K', 2, 2],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [1, 1, '1K', 1, 1]
+                    ],
+                    currentPlayer: 1,
+                    player1Name: player1Name, // Keep player names
+                    player2Name: player2Name,
+                    status: 'playing', // Reset status to playing
+                    winner: null
+                });
+                gameMessage.textContent = "Game reset! Player 1 starts.";
+                playAgainButton.classList.add('hidden'); // Hide button after resetting
+            } else if (!isPlayer1 && currentPlayer === 2) {
+                gameMessage.textContent = "Only Player 1 can initiate a reset, or the winning player.";
+            }
+        });
+
 
         // --- LOBBY LOGIC ---
 
         createGameButton.addEventListener('click', async () => {
+            playerNickname = nicknameInput.value.trim(); // Ensure latest nickname is used
+            if (playerNickname === "") {
+                playerNickname = `Player${Math.floor(Math.random() * 1000)}`;
+                nicknameInput.value = playerNickname;
+                localStorage.setItem('king_s_valley_nickname', playerNickname);
+            }
+
             const newGameId = 'game_' + Math.random().toString(36).substring(2, 9); // Simple unique ID
             const gameRef = ref(database, 'games/' + newGameId);
 
@@ -284,18 +348,21 @@
                     [1, 1, '1K', 1, 1]
                 ],
                 currentPlayer: 1,
-                player1Joined: true, // This client is Player 1
-                player2Joined: false,
-                status: 'waiting' // Game is waiting for another player
+                player1Name: playerNickname, // NEW: Store Player 1's nickname
+                player2Name: null, // NEW: Player 2 not yet joined
+                status: 'waiting', // Game is waiting for another player
+                winner: null
             });
 
             currentGameId = newGameId;
             isPlayer1 = true;
-            // NEW: Construct and display the sharable link
+            // NEW: Construct and display the sharable link and Game ID
             const shareUrl = window.location.origin + window.location.pathname + '?gameId=' + newGameId;
             gameLink.href = shareUrl;
             gameLink.textContent = shareUrl;
             sharableLinkDisplay.classList.remove('hidden'); // Show the link display
+            gameIdDisplay.textContent = `Game ID: ${newGameId}`; // Display the ID prominently
+            gameIdDisplay.classList.remove('hidden');
             lobbyMessage.textContent = `Game created! Share the link above with a friend.`;
             console.log("Game created with ID:", newGameId, "Share URL:", shareUrl);
             startGameListener(newGameId); // Start listening for changes to THIS game
@@ -303,14 +370,21 @@
         });
 
         joinGameButton.addEventListener('click', async () => {
+            playerNickname = nicknameInput.value.trim(); // Ensure latest nickname is used
+            if (playerNickname === "") {
+                playerNickname = `Player${Math.floor(Math.random() * 1000)}`;
+                nicknameInput.value = playerNickname;
+                localStorage.setItem('king_s_valley_nickname', playerNickname);
+            }
+
             const gameIdToJoin = gameIdInput.value.trim();
             if (gameIdToJoin) {
                 const gameRef = ref(database, 'games/' + gameIdToJoin);
                 // Use onValue with { onlyOnce: true } to check initial state
                 onValue(gameRef, async (snapshot) => {
                     const gameData = snapshot.val();
-                    if (gameData && !gameData.player2Joined) { // Check if game exists and has space
-                        await set(ref(database, 'games/' + gameIdToJoin + '/player2Joined'), true); // Mark Player 2 joined
+                    if (gameData && !gameData.player2Name) { // Check if game exists and has space
+                        await set(ref(database, 'games/' + gameIdToJoin + '/player2Name'), playerNickname); // NEW: Mark Player 2 joined with nickname
                         await set(ref(database, 'games/' + gameIdToJoin + '/status'), 'playing'); // Set status to playing
                         currentGameId = gameIdToJoin;
                         isPlayer1 = false; // This client is Player 2
@@ -318,7 +392,7 @@
                         console.log("Joined game:", gameIdToJoin);
                         startGameListener(gameIdToJoin);
                         showGameScreen();
-                    } else if (gameData && gameData.player2Joined) {
+                    } else if (gameData && gameData.player2Name) {
                         lobbyMessage.textContent = `Game ${gameIdToJoin} is already full or doesn't exist.`;
                     } else {
                         lobbyMessage.textContent = `Game ${gameIdToJoin} not found.`;
@@ -329,15 +403,18 @@
             }
         });
 
+        let player1Name = "Player 1"; // Global to hold current player names from DB
+        let player2Name = "Player 2"; // Global to hold current player names from DB
+
         function showGameScreen() {
             lobbyContainer.classList.add('hidden');
             gameContainer.classList.remove('hidden');
-            gameMessage.textContent = `Welcome! You are ${isPlayer1 ? 'Player 1 (Red)' : 'Player 2 (Blue)'}.`;
+            gameMessage.textContent = `Welcome! Waiting for opponent...`; // Initial message
             updateGameInfo(); // Initial update of player info
             renderBoard(); // Initial render based on retrieved board
         }
 
-        // --- Function to listen for game changes from the database ---
+        // --- NEW: Function to listen for game changes from the database ---
         function startGameListener(gameId) {
             const gameRef = ref(database, 'games/' + gameId);
             onValue(gameRef, (snapshot) => {
@@ -346,12 +423,22 @@
                     // Update local state with data from database
                     board = gameData.board;
                     currentPlayer = gameData.currentPlayer;
+                    player1Name = gameData.player1Name || "Player 1"; // NEW: Update names
+                    player2Name = gameData.player2Name || "Player 2"; // NEW: Update names
+
                     renderBoard(); // Re-render the board with the new state
                     updateGameInfo(); // Update current player display
-                    if (gameData.status === 'playing' && gameMessage.textContent.includes('Welcome')) {
+
+                    // Handle game status messages
+                    if (gameData.status === 'waiting') {
+                        gameMessage.textContent = `Waiting for opponent to join...`;
+                        playAgainButton.classList.add('hidden'); // Hide play again button
+                    } else if (gameData.status === 'playing') {
                         gameMessage.textContent = "Game started! Make your move!";
+                        playAgainButton.classList.add('hidden'); // Hide play again button
                     } else if (gameData.status === 'finished') {
-                         gameMessage.textContent = `Game Over! Player ${gameData.winner} won!`;
+                         gameMessage.textContent = `Game Over! ${gameData.winner === 1 ? player1Name : player2Name} won!`;
+                         playAgainButton.classList.remove('hidden'); // Show play again button
                     }
                 }
             });
@@ -561,8 +648,8 @@
                     await set(gameRef, {
                         board: newBoard,
                         currentPlayer: newStatus === 'finished' ? currentPlayer : nextPlayer, // Keep current player if game finished
-                        player1Joined: true, // Assume both players are still in the game
-                        player2Joined: true,
+                        player1Name: player1Name, // Pass along names
+                        player2Name: player2Name,
                         status: newStatus,
                         winner: winner // Add winner field if game finished
                     });
@@ -589,7 +676,14 @@
 
         // Updates the display for current player and messages
         function updateGameInfo() {
-            currentPlayerDisplay.textContent = `Player ${currentPlayer}`;
+            // NEW: Use player nicknames for display
+            let currentDisplay = ``;
+            if (currentPlayer === 1) {
+                currentDisplay = `${player1Name} (Red)`;
+            } else {
+                currentDisplay = `${player2Name} (Blue)`;
+            }
+            currentPlayerDisplay.textContent = currentDisplay;
             currentPlayerDisplay.classList.remove('text-red-500', 'text-blue-500');
             if (currentPlayer === 1) {
                 currentPlayerDisplay.classList.add('text-red-500');
