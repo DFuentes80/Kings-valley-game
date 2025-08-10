@@ -3,528 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>King's Valley - Multiplayer</title>
+    <title>King's Valley</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .game-container {
-            background-color: #ffffff;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            padding: 2.5rem;
-            text-align: center;
-            max-width: 90%;
-            width: 500px;
-            margin-bottom: 20px;
-        }
-
-        .game-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .board {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(5, 1fr);
-            width: 100%;
-            max-width: 400px;
-            height: 400px;
-            margin: 0 auto 2rem auto;
-            border: 6px solid #8e44ad;
-            border-radius: 0.75rem;
-            overflow: hidden;
-        }
-
-        .square {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #34495e;
-            box-sizing: border-box;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .square:nth-child(odd) {
-            background-color: #ecf0f1;
-        }
-
-        .square:nth-child(even) {
-            background-color: #bdc3c7;
-        }
-
-        .square[data-row="2"][data-col="2"] {
-            background-color: #f39c12;
-            color: #ffffff;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
-            position: relative;
-        }
-
-        .piece {
-            width: 80%;
-            height: 80%;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: #ffffff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            cursor: pointer;
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-
-        .piece:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .player-1-color {
-            background-color: #e74c3c;
-        }
-
-        .player-2-color {
-            background-color: #3498db;
-        }
-
-        .player-1-color.king {
-            background-color: #c0392b;
-            border: 3px solid #f1c40f;
-            font-size: 1.5rem;
-        }
-
-        .player-2-color.king {
-            background-color: #2980b9;
-            border: 3px solid #f1c40f;
-            font-size: 1.5rem;
-        }
-
-        .highlight-move {
-            background-color: rgba(46, 204, 113, 0.5);
-            cursor: pointer;
-            border: 2px dashed #27ae60;
-        }
-
-        .selected {
-            border: 4px solid #f1c40f !important;
-            box-shadow: 0 0 15px #f1c40f;
-        }
-
-        @media (max-width: 600px) {
-            .game-container {
-                padding: 1.5rem;
-            }
-            .game-title {
-                font-size: 2rem;
-            }
-            .board {
-                max-width: 300px;
-                height: 300px;
-            }
-            .square {
-                font-size: 1.2rem;
-            }
-            .piece {
-                font-size: 1rem;
-            }
-            .player-1-color.king, .player-2-color.king {
-                font-size: 1.2rem;
-            }
-        }
+        /* ... (Your existing CSS here) ... */
     </style>
 </head>
 <body>
     <div class="game-container">
-        <h1 class="game-title">King's Valley - Multiplayer</h1>
-        <div id="gameLobby" class="mb-4">
-            <h2 class="text-xl font-bold mb-2">Game Lobby</h2>
-            <div class="flex flex-col sm:flex-row gap-2 justify-center">
-                <button id="newGameBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition">New Game</button>
-                <input type="text" id="gameIdInput" placeholder="Enter Game ID to Join" class="border p-2 rounded-lg text-center">
-                <button id="joinGameBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">Join Game</button>
-            </div>
-             <p class="mt-2 text-sm text-gray-600">Your User ID: <span id="userId" class="font-mono"></span></p>
+        <h1 class="game-title">King's Valley</h1>
+        <div id="gameBoard" class="board">
+            <!-- Board squares will be generated here by JavaScript -->
         </div>
-
-        <div id="gameArea" class="hidden">
-            <p class="text-md font-semibold text-gray-700 mb-2">Game ID: <span id="gameIdDisplay" class="font-mono bg-gray-200 px-2 py-1 rounded"></span></p>
-            <div id="gameBoard" class="board">
-                <!-- Board squares will be generated here by JavaScript -->
-            </div>
-            <div class="text-lg font-semibold text-gray-700 mt-4">
-                <p>Current Player: <span id="currentPlayerDisplay" class="font-bold"></span></p>
-                <p>You are: <span id="playerRoleDisplay" class="font-bold"></span></p>
-                <p>Message: <span id="gameMessage" class="text-gray-600"></span></p>
-            </div>
+        <div class="text-lg font-semibold text-gray-700 mt-4">
+            <p>Current Player: <span id="currentPlayerDisplay" class="text-red-500">Player 1</span></p>
+            <p>Message: <span id="gameMessage" class="text-gray-600">Welcome to King's Valley!</span></p>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        // It's recommended to use the latest version of the SDK
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <script>
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "firebase/app";
+        import { getAnalytics } from "firebase/analytics";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
 
-        // IMPORTANT: Replace with your actual Firebase project configuration
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyA9G_JmOZnNCchThqK0hfiWmFz_Q26hd0E",
+          authDomain: "king-s-valley.firebaseapp.com",
+          databaseURL: "https://king-s-valley-default-rtdb.firebaseio.com",
+          projectId: "king-s-valley",
+          storageBucket: "king-s-valley.firebasestorage.app",
+          messagingSenderId: "53430172413",
+          appId: "1:53430172413:web:1b1c081d5e79aab6931c94",
+          measurementId: "G-7QYSRLSVPH"
+        };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
 
-        // DOM Elements
+        // --- Your existing game JavaScript starts here ---
         const boardElement = document.getElementById('gameBoard');
         const currentPlayerDisplay = document.getElementById('currentPlayerDisplay');
         const gameMessage = document.getElementById('gameMessage');
-        const newGameBtn = document.getElementById('newGameBtn');
-        const joinGameBtn = document.getElementById('joinGameBtn');
-        const gameIdInput = document.getElementById('gameIdInput');
-        const gameLobby = document.getElementById('gameLobby');
-        const gameArea = document.getElementById('gameArea');
-        const gameIdDisplay = document.getElementById('gameIdDisplay');
-        const playerRoleDisplay = document.getElementById('playerRoleDisplay');
-        const userIdSpan = document.getElementById('userId');
 
-        // Game State Variables
-        let board = [];
-        let currentPlayer = 1;
-        let selectedPiece = null;
-        let selectedPieceCoords = null;
-        let currentGameId = null;
-        let localPlayerId = null;
-        let playerRole = null; // 1 or 2
-        let unsubscribeGame = null; // To stop listening to game updates
-
-        // --- Authentication ---
-        onAuthStateChanged(auth, user => {
-            if (user) {
-                localPlayerId = user.uid;
-                userIdSpan.textContent = localPlayerId;
-                console.log("Authenticated anonymously with UID:", localPlayerId);
-            } else {
-                signInAnonymously(auth).catch(error => {
-                    console.error("Anonymous sign-in failed:", error);
-                    gameMessage.textContent = "Authentication failed. Please refresh.";
-                });
-            }
-        });
-
-
-        // --- Game Logic ---
-
-        function getInitialBoard() {
-            return [
-                [2, 2, '2K', 2, 2],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [1, 1, '1K', 1, 1]
-            ];
-        }
-
-        async function createNewGame() {
-            if (!localPlayerId) {
-                gameMessage.textContent = "Please wait for authentication.";
-                return;
-            }
-            try {
-                const gamesCollection = collection(db, "games");
-                const gameDocRef = await addDoc(gamesCollection, {
-                    board: getInitialBoard(),
-                    currentPlayer: 1,
-                    players: { [localPlayerId]: 1 }, // Player 1
-                    winner: null,
-                    createdAt: new Date()
-                });
-                joinGame(gameDocRef.id);
-            } catch (error) {
-                console.error("Error creating new game:", error);
-                gameMessage.textContent = "Failed to create a new game.";
-            }
-        }
-
-        async function joinGame(gameId) {
-            if (!localPlayerId) {
-                gameMessage.textContent = "Please wait for authentication.";
-                return;
-            }
-            if (!gameId) {
-                gameMessage.textContent = "Please enter a Game ID.";
-                return;
-            }
-
-            const gameDocRef = doc(db, "games", gameId);
-            const gameDocSnap = await getDoc(gameDocRef);
-
-            if (gameDocSnap.exists()) {
-                const gameData = gameDocSnap.data();
-
-                // If already in the game, just continue
-                if (gameData.players[localPlayerId]) {
-                    playerRole = gameData.players[localPlayerId];
-                } else { // Attempt to join as Player 2
-                    if (Object.keys(gameData.players).length < 2) {
-                        playerRole = 2;
-                        const updatedPlayers = { ...gameData.players, [localPlayerId]: 2 };
-                        await setDoc(gameDocRef, { players: updatedPlayers }, { merge: true });
-                    } else {
-                        gameMessage.textContent = "This game is full.";
-                        return;
-                    }
-                }
-
-                currentGameId = gameId;
-                gameIdDisplay.textContent = currentGameId;
-                playerRoleDisplay.textContent = `Player ${playerRole} (${playerRole === 1 ? 'Red' : 'Blue'})`;
-
-                gameLobby.classList.add('hidden');
-                gameArea.classList.remove('hidden');
-
-                // Unsubscribe from any previous game
-                if (unsubscribeGame) {
-                    unsubscribeGame();
-                }
-
-                // Listen for real-time updates
-                unsubscribeGame = onSnapshot(gameDocRef, (doc) => {
-                    console.log("Game data updated!");
-                    const updatedData = doc.data();
-                    board = updatedData.board;
-                    currentPlayer = updatedData.currentPlayer;
-                    renderBoard();
-                    if (updatedData.winner) {
-                        gameMessage.textContent = `Player ${updatedData.winner} wins! The King reached the King's Valley!`;
-                        // Optionally disable further moves
-                    }
-                });
-
-            } else {
-                gameMessage.textContent = "Game not found.";
-            }
-        }
-
-        function renderBoard() {
-            boardElement.innerHTML = '';
-            for (let row = 0; row < 5; row++) {
-                for (let col = 0; col < 5; col++) {
-                    const square = document.createElement('div');
-                    square.classList.add('square');
-                    square.dataset.row = row;
-                    square.dataset.col = col;
-
-                    const pieceType = board[row][col];
-                    if (pieceType !== 0) {
-                        const piece = document.createElement('div');
-                        piece.classList.add('piece');
-                        piece.dataset.row = row;
-                        piece.dataset.col = col;
-
-                        if (pieceType === 1 || pieceType === '1K') {
-                            piece.classList.add('player-1-color');
-                            piece.textContent = (pieceType === 1) ? 'S' : 'K';
-                        } else if (pieceType === 2 || pieceType === '2K') {
-                            piece.classList.add('player-2-color');
-                            piece.textContent = (pieceType === 2) ? 'S' : 'K';
-                        }
-                        if (pieceType === '1K' || pieceType === '2K') {
-                            piece.classList.add('king');
-                        }
-
-                        piece.addEventListener('click', handlePieceClick);
-                        square.appendChild(piece);
-                    }
-                    square.addEventListener('click', handleSquareClick);
-                    boardElement.appendChild(square);
-                }
-            }
-            updateGameInfo();
-        }
-
-        function isInBounds(row, col) {
-            return row >= 0 && row < 5 && col >= 0 && col < 5;
-        }
-
-        function isOccupied(row, col) {
-            return board[row][col] !== 0;
-        }
-
-        function isValidMove(startRow, startCol, targetRow, targetCol) {
-            if (!isInBounds(targetRow, targetCol) || isOccupied(targetRow, targetCol)) {
-                return false;
-            }
-
-            const pieceType = board[startRow][startCol];
-            const isKing = (pieceType === '1K' || pieceType === '2K');
-
-            const dRow = targetRow - startRow;
-            const dCol = targetCol - startCol;
-
-            let rowDir = 0;
-            let colDir = 0;
-
-            if (dRow === 0 && dCol !== 0) { colDir = dCol > 0 ? 1 : -1; }
-            else if (dCol === 0 && dRow !== 0) { rowDir = dRow > 0 ? 1 : -1; }
-            else if (Math.abs(dRow) === Math.abs(dCol) && dRow !== 0) {
-                rowDir = dRow > 0 ? 1 : -1;
-                colDir = dCol > 0 ? 1 : -1;
-            } else {
-                return false;
-            }
-
-            let currentRow = startRow + rowDir;
-            let currentCol = startCol + colDir;
-            let actualStopRow = startRow;
-            let actualStopCol = startCol;
-
-            while (isInBounds(currentRow, currentCol) && !isOccupied(currentRow, currentCol)) {
-                actualStopRow = currentRow;
-                actualStopCol = currentCol;
-                currentRow += rowDir;
-                currentCol += colDir;
-            }
-
-            if (targetRow !== actualStopRow || targetCol !== actualStopCol) {
-                return false;
-            }
-
-            if (targetRow === 2 && targetCol === 2 && !isKing) {
-                return false;
-            }
-
-            return true;
-        }
-
-        function highlightValidMoves() {
-            document.querySelectorAll('.highlight-move').forEach(square => {
-                square.classList.remove('highlight-move');
-            });
-
-            if (!selectedPieceCoords) return;
-
-            const [startRow, startCol] = selectedPieceCoords;
-            for (let row = 0; row < 5; row++) {
-                for (let col = 0; col < 5; col++) {
-                    if (isValidMove(startRow, startCol, row, col)) {
-                        const targetSquare = boardElement.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
-                        if (targetSquare) {
-                            targetSquare.classList.add('highlight-move');
-                        }
-                    }
-                }
-            }
-        }
-
-        function handlePieceClick(event) {
-            event.stopPropagation(); // Prevent square click from firing immediately
-            if (currentPlayer !== playerRole) {
-                gameMessage.textContent = "It's not your turn!";
-                return;
-            }
-
-            const clickedPiece = event.target;
-            const row = parseInt(clickedPiece.dataset.row);
-            const col = parseInt(clickedPiece.dataset.col);
-            const pieceType = board[row][col];
-
-            if ((currentPlayer === 1 && (pieceType === 1 || pieceType === '1K')) ||
-                (currentPlayer === 2 && (pieceType === 2 || pieceType === '2K'))) {
-
-                if (selectedPiece) {
-                    selectedPiece.classList.remove('selected');
-                }
-
-                selectedPiece = clickedPiece;
-                selectedPieceCoords = [row, col];
-                selectedPiece.classList.add('selected');
-                gameMessage.textContent = `Piece selected. Click a highlighted square to move.`;
-                highlightValidMoves();
-            } else {
-                gameMessage.textContent = "That's not your piece!";
-            }
-        }
-
-        async function handleSquareClick(event) {
-            if (currentPlayer !== playerRole) {
-                gameMessage.textContent = "It's not your turn!";
-                return;
-            }
-
-            const clickedSquare = event.currentTarget;
-            const targetRow = parseInt(clickedSquare.dataset.row);
-            const targetCol = parseInt(clickedSquare.dataset.col);
-
-            if (selectedPiece && selectedPieceCoords) {
-                const [startRow, startCol] = selectedPieceCoords;
-
-                if (isValidMove(startRow, startCol, targetRow, targetCol)) {
-                    const newBoard = JSON.parse(JSON.stringify(board)); // Deep copy
-                    newBoard[targetRow][targetCol] = newBoard[startRow][startCol];
-                    newBoard[startRow][startCol] = 0;
-
-                    let winner = null;
-                    const pieceMoved = newBoard[targetRow][targetCol];
-                    if ((pieceMoved === '1K' || pieceMoved === '2K') && targetRow === 2 && targetCol === 2) {
-                        winner = currentPlayer;
-                    }
-
-                    const nextPlayer = currentPlayer === 1 ? 2 : 1;
-
-                    // Update Firestore
-                    const gameDocRef = doc(db, "games", currentGameId);
-                    await setDoc(gameDocRef, {
-                        board: newBoard,
-                        currentPlayer: winner ? currentPlayer : nextPlayer,
-                        winner: winner
-                    }, { merge: true });
-
-                    // Clear local selection after move
-                    selectedPiece = null;
-                    selectedPieceCoords = null;
-                    // The onSnapshot listener will handle re-rendering
-
-                } else {
-                    gameMessage.textContent = "Invalid move. Please select a highlighted square.";
-                }
-            }
-        }
-
-        function updateGameInfo() {
-            currentPlayerDisplay.textContent = `Player ${currentPlayer}`;
-            currentPlayerDisplay.classList.remove('text-red-500', 'text-blue-500');
-            if (currentPlayer === 1) {
-                currentPlayerDisplay.classList.add('text-red-500');
-            } else {
-                currentPlayerDisplay.classList.add('text-blue-500');
-            }
-        }
-
-        // --- Event Listeners ---
-        newGameBtn.addEventListener('click', createNewGame);
-        joinGameBtn.addEventListener('click', () => joinGame(gameIdInput.value.trim()));
-
+        // ... (The rest of your game's JavaScript code) ...
     </script>
 </body>
 </html>
